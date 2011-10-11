@@ -12,11 +12,22 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include "bloques.h"
 
 
 int main(int argc, char **argv){
-	char nombre[5]= "hola";
-	printf("Introducido %s", argv[1]);
 
-	bmount("fichero");
+	unsigned int n_bloques = atoi(argv[2]);
+
+	unsigned char buf[blocksize];
+
+	memset(buf,0,blocksize);
+
+	bmount(argv[1]);
+	int i;
+
+	for (i=0; i<n_bloques; i++){
+		bwrite(i,buf);
+	}
+	bumount();
 }

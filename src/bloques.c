@@ -7,17 +7,9 @@
  Description : Hello World in C, Ansi-style
  ============================================================================
  */
+#include "bloques.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-static int fichero;
-const int blocksize=1024;
+static int fichero = 0;
 
 int bmount (const char *camino){
 	fichero = open(camino, O_RDWR|O_CREAT,0666);
@@ -35,8 +27,11 @@ int bumount(){
 }
 
 int bwrite(unsigned int bloque, const void *buf){
-	lseek(fichero,bloque *blocksize,SEEK_SET);
-    if (write(1, buf, blocksize) != blocksize) {
+	if (lseek(fichero,(bloque*blocksize),SEEK_SET) == -1){
+		printf("Error al ubicar el archivo");
+		return -1;
+	}
+    if (write(fichero, buf, blocksize) == -1) {
         printf("Error al escribir en el archivo");
         return -1;
 	}
