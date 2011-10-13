@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "bloques.h"
+#include "ficheros_basico.h"
 
 
 int main(int argc, char **argv){
@@ -29,5 +30,10 @@ int main(int argc, char **argv){
 	for (i=0; i<n_bloques; i++){
 		bwrite(i,buf);
 	}
+
+	int block = blocksize/4;//Para el cáculo de inodos
+
+	initMB(n_bloques);
+
 	bumount();
 }

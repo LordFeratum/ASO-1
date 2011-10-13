@@ -12,6 +12,8 @@
 
 #define posSB 0 //el superbloque se escribe en el primer bloque de nuestro FS
 #define T_INODO 128 //tamaño en bytes de un inodo
+struct superbloque sp;
+struct inodo ino;
 
 struct superbloque{
 	unsigned int posPrimerBloqueMB; //Posición del primer bloque del mapa de bits
