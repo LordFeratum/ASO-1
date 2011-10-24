@@ -165,6 +165,7 @@ unsigned char leer_bit(unsigned int nbloque){
 int reservar_bloque(){
 	struct superbloque sb;
 	int n,pos_byte,pos_bit;
+	unsigned char byte;
 	unsigned char mapa_bits[blocksize];
 	unsigned char bufferAux[blocksize];
 
@@ -184,21 +185,18 @@ int reservar_bloque(){
 		}while(n<=sb.posUltimoBloqueMB);
 
 		pos_byte= n / 8;
-		pos_bit= n % 8; //Tal vez falta división como en escribir bit
-		//Falta!!!!!
-		//Buscamos en ese bloque del mapa de bits el primer byte que tenga algún 0 (pos_byte).
-		//Luego buscamos en ese byte en que posición (pos_bit) está el 0 (ver cálculos para el mapa de bit: encontrar el primer bit a 0, por la izquierda, de un byte).
+		pos_bit= n % 8;
+		byte = mapa_bits[n];
 
 		unsigned char mascara = 128; // 10000000
 		int i = 0;
 
-		/*if (byte < 255) { // hay bits a 0 en el byte
+		if (byte < 255) { // hay bits a 0 en el byte
 			while (byte & mascara) { // operador AND para bits
 				byte <<= 1; // desplazamiento de bits a la izquierda
 				i++;
 			}
-			return i;
-		}*/
+		}
 		n = ((n-sb.posPrimerBloqueMB)*blocksize+pos_byte)*8+pos_bit; //No tenemos claro n
 		escribir_bit(n,1);
 		sb.cantBloquesLibres-=1;
@@ -223,12 +221,11 @@ int escribir_inodo(struct inodo inodo, unsigned int ninodo){
 	int ino,tamino;
 	bread(posSB,&sb);		//Lectura superbloque
 	ino = sb.posPrimerBloqueAI;
-	ino = ino/blocksize; //No
-	ino += ninodo;
 	tamino = blocksize/sizeof(inodo);
+	ino = ninodo/tamino+ino;
 	struct inodo Ainodes[tamino];
 	bread(ino,&Ainodes);
-	int conta = ninodo%(blocksize/sizeof(inodo));
+	int conta = ninodo % tamino;
 	Ainodes[conta]=inodo;
 	bwrite(ino,&Ainodes);
 	return 0;
@@ -237,26 +234,28 @@ int escribir_inodo(struct inodo inodo, unsigned int ninodo){
 struct inodo leer_inodo(unsigned int ninodo){
 	struct superbloque sb;
 	int ino,tamino;
+	struct inodo inodo;
 	bread(posSB,&sb);		//Lectura superbloque
 	ino = sb.posPrimerBloqueAI;
-	ino = ino/blocksize; //No
-	ino += ninodo;
-	struct inodo inodo;
+	int conta = ninodo%tamino;
 	tamino = blocksize/sizeof(inodo);
+	ino = ninodo/tamino+ino;
 	struct inodo Ainodes[tamino];
 	bread(ino,&Ainodes);
-	int conta = ninodo%(blocksize/sizeof(inodo));
 	inodo=Ainodes[conta];
 	return inodo;
 }
 
 int reservar_inodo(unsigned char tipo, unsigned char permisos){
 	struct superbloque sb;
-	int illiure,i,tamino;
+	int illiure,i,tamino,ino,nbloque;
 	bread(posSB,&sb);		//Lectura superbloque
 	illiure = sb.posPrimerInodoLibre; //Debe pasar a bloque
-
+	ino = sb.posPrimerBloqueAI;
 	struct inodo in;
+	tamino = blocksize/sizeof(in);
+	nbloque = illiure/tamino+ino;
+
 	in.tipo=tipo;
 	in.permisos=permisos;
 	in.nlinks=1;
@@ -272,9 +271,12 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
 		in.punterosIndirectos[i]=0;
 	}
 
-	tamino = blocksize/sizeof(in);
 	struct inodo Ainodes[tamino];
-	bread(illiure,&Ainodes);
+	bread(nbloque,&Ainodes);
+	int conta = ino%tamino;
+	Ainodes[conta]=in;
+	bwrite(nbloque,&Ainodes);
+	//Falta actualizar lista de inodos libres
 
 
 
