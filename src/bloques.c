@@ -14,7 +14,7 @@ static int fichero = 0;
 int bmount (const char *camino){
 	fichero = open(camino, O_RDWR|O_CREAT,0666);
 	if(fichero == -1){
-		printf("Error de apertura de archivo");
+		printf("Error de apertura de archivo ");
 	}
 	return fichero;
 }
