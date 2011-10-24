@@ -12,7 +12,6 @@
 
 #define posSB 0 //el superbloque se escribe en el primer bloque de nuestro FS
 #define T_INODO 128 //tamaño en bytes de un inodo
-struct superbloque sp;
 struct inodo ino;
 
 struct superbloque{
@@ -50,3 +49,10 @@ int tamAI (unsigned int ninodos);
 int initSB(unsigned int nbloques, unsigned int ninodos);
 int initMB(unsigned int nbloques);
 int initAI(unsigned int ninodos);
+int escribir_bit(unsigned int nbloque, unsigned int bit);
+unsigned char leer_bit(unsigned int nbloque);
+int reservar_bloque();
+int liberar_bloque(unsigned int nbloque);
+int escribir_inodo(struct inodo inodo, unsigned int ninodo);
+struct inodo leer_inodo(unsigned int ninodo);
+int reservar_inodo(unsigned char tipo, unsigned char permisos);

@@ -31,9 +31,25 @@ int main(int argc, char **argv){
 		bwrite(i,buf);
 	}
 
-	int block = blocksize/4;//Para el cáculo de inodos
+	int block = n_bloques/4;//Para el cáculo de inodos
+	if(initSB(n_bloques, block)==-1){
+		printf("Error al escribir superbloque");
+	}else{
+		printf("Superbloque escrito \n");
+	}
 
-	initMB(n_bloques);
+	if(initMB(n_bloques)==-1){
+		printf("Error al escribir mapa de bits");
+	}else{
+		printf("Mapa de bits escrito \n");
+	}
+	int n = tamAI(block);//En teoría no sirve para nada
+	if (initAI(n)==-1){
+		printf("Error al escribir el array de inodes");
+	}else{
+		printf("Array de inodes escrito \n");
+	}
+
 
 	bumount();
 }

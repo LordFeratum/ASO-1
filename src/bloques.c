@@ -14,7 +14,7 @@ static int fichero = 0;
 int bmount (const char *camino){
 	fichero = open(camino, O_RDWR|O_CREAT,0666);
 	if(fichero == -1){
-		printf("Error de apertura de archivo ");
+		printf("Error de apertura de archivo");
 	}
 	return fichero;
 }
@@ -39,10 +39,15 @@ int bwrite(unsigned int bloque, const void *buf){
 }
 
 int bread(unsigned int bloque, void *buf){
-	lseek(fichero,bloque *blocksize,SEEK_SET);
-	if (read(0,buf,bloque)== -1){
-		printf("Error al leer del archivo");
+	if (lseek(fichero,(bloque*blocksize),SEEK_SET) == -1){
+		printf("Error al ubicar la lectura del archivo");
+		return -1;
 	}
+	if (read(fichero,buf,blocksize)== -1){
+		printf("Error al leer del archivo");
+		return -1;
+	}
+	return 0;
 }
 
 
