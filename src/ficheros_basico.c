@@ -86,11 +86,7 @@ int initAI(unsigned int inodos){ //Sobra inodos
 
 	for (i=sb.posPrimerBloqueAI; i<=sb.posUltimoBloqueAI;i++){
 		for (j=0;j<=7;j++){
-			if(j<7){
-				Ainodes[j].punterosDirectos[0]=j+1; //Enllaç a seguent inode lliure
-			}else{
-				Ainodes[j].punterosDirectos[0]=i+1;
-			}
+			Ainodes[j].punterosDirectos[0]=i+j+1; //Enllaç a seguent inode lliure
 			Ainodes[j].tipo='l'; //Tipo (libre, directorio o fichero)
 		}
 		if (i==sb.posUltimoBloqueAI){
@@ -237,8 +233,8 @@ struct inodo leer_inodo(unsigned int ninodo){
 	struct inodo inodo;
 	bread(posSB,&sb);		//Lectura superbloque
 	ino = sb.posPrimerBloqueAI;
-	int conta = ninodo%tamino;
 	tamino = blocksize/sizeof(inodo);
+	int conta = ninodo%tamino;
 	ino = ninodo/tamino+ino;
 	struct inodo Ainodes[tamino];
 	bread(ino,&Ainodes);
@@ -272,13 +268,80 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
 	}
 
 	struct inodo Ainodes[tamino];
-	bread(nbloque,&Ainodes);
 	int conta = ino%tamino;
+	sb.posPrimerInodoLibre=Ainodes[conta].punterosDirectos[0];
+	sb.cantInodosLibres--;
+	bread(nbloque,&Ainodes);
 	Ainodes[conta]=in;
 	bwrite(nbloque,&Ainodes);
-	//Falta actualizar lista de inodos libres
+	bwrite(posSB,&sb);
+	return ino;
+}
+
+int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned int *bfisico, char reservar){
+	int pdir,npun,pind1,pind2,ino,nbloque,i;
+	struct inodo in;
 
 
+	pdir = 12;
+	npun = 256;
+	int bufN0[npun];
+	pind1 = npun*npun;
+	pind2 = npun*pind1;
+
+	in = leer_inodo(ninodo);
+
+	if (blogico < pdir){
+		switch (reservar){
+		case '0':
+			if (in.punterosDirectos[blogico]==0){
+				return -1;
+			}else{
+				*bfisico = in.punterosDirectos[blogico];
+				return 0;
+			}
+			break;
+		case '1':
+			if (in.punterosDirectos[blogico]==0){
+				nbloque = reservar_bloque();
+				if (nbloque<-1){
+					in.punterosDirectos[blogico]=nbloque;
+					in.numBloquesOcupados++;
+					*bfisico=in.punterosDirectos[blogico];
+					escribir_inodo(in,ninodo);
+					return 0;
+				}else{
+					*bfisico = in.punterosDirectos[blogico];
+					return 0;
+				}
+			}
+			break;
+		default:
+			return -2;
+			break;
+		}
+	}else if(blogico<(pdir+npun)){
+		switch(reservar){
+		case '0':
+			if (in.punterosIndirectos[0] == 0){
+				return -1;
+			}else{
+				if (leer_inodo(in.punterosIndirectos[0]-pdir)==0){
+					return -1;
+				}else{
+					in = leer_inodo(in.punterosIndirectos[0]-pdir);
+					for (i=0;i<npun;i++){
+
+						bufN0[i]=
+					}
+					*bfisico = in.punterosDirectos[blogico-pdir]; //Mirar
+					return 0;
+				}
+
+			}
+			break;
+		}
+	}
 
 
 }

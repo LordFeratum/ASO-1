@@ -13,6 +13,11 @@
 #define posSB 0 //el superbloque se escribe en el primer bloque de nuestro FS
 #define T_INODO 128 //tamaño en bytes de un inodo
 struct inodo ino;
+#define dir 12
+#define indir0 256
+#define indir1 65536
+#define indir2 16777216
+
 
 struct superbloque{
 	unsigned int posPrimerBloqueMB; //Posición del primer bloque del mapa de bits
@@ -41,7 +46,7 @@ struct inodo{
 	unsigned int numBloquesOcupados; //Cantidad de bloques ocupados en la zona de datos
 	unsigned int punterosDirectos[12]; //12 punteros a bloques directos
 	unsigned int punterosIndirectos[3]; //3 punteros a bloques indirectos:1 puntero indirecto simple, 1 puntero indirecto doble, 1 puntero indirecto triple
-	char padding[T_INODO-(2*sizeof(char))-(18*sizeof(int))-(3*sizeof(time_t))];
+	char padding[T_INODO-(2*sizeof(char))-(19*sizeof(int))-(3*sizeof(time_t))];
 };
 
 int tamMB (unsigned int nbloques);
@@ -56,3 +61,4 @@ int liberar_bloque(unsigned int nbloque);
 int escribir_inodo(struct inodo inodo, unsigned int ninodo);
 struct inodo leer_inodo(unsigned int ninodo);
 int reservar_inodo(unsigned char tipo, unsigned char permisos);
+int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned int *bfisico, char reservar);
