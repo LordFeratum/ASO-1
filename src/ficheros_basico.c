@@ -279,13 +279,13 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
 }
 
 int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned int *bfisico, char reservar){
-	int pdir,npun,pind1,pind2,ino,nbloque,i;
+	int pdir,npun,pind1,pind2,ino,nbloque,i,punt0,punt1;
 	struct inodo in;
-
 
 	pdir = 12;
 	npun = 256;
-	int bufN0[npun];
+	int bufferIndirectos0[npun];
+	int bufferIndirectos1[npun];
 	pind1 = npun*npun;
 	pind2 = npun*pind1;
 
@@ -326,19 +326,65 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 			if (in.punterosIndirectos[0] == 0){
 				return -1;
 			}else{
-				if (leer_inodo(in.punterosIndirectos[0]-pdir)==0){
+				if (bread(in.punterosIndirectos[0]-pdir,bufferIndirectos0)){
 					return -1;
 				}else{
-					in = leer_inodo(in.punterosIndirectos[0]-pdir);
-					for (i=0;i<npun;i++){
-
-						bufN0[i]=
-					}
-					*bfisico = in.punterosDirectos[blogico-pdir]; //Mirar
-					return 0;
+					return bufferIndirectos0[blogico-npun];
 				}
-
 			}
+			break;
+		case '1':
+			if (in.punterosIndirectos[0]==0){
+				bufferIndirectos0[blogico-pdir] = reservar_bloque();
+				in.numBloquesOcupados++;
+				in.punterosIndirectos[0]= reservar_bloque();
+				for (i=0; i<npun;i++){
+					bufferIndirectos0[i]=0;
+				}
+				bwrite(in.punterosIndirectos[0],bufferIndirectos0);
+			}else{
+				bread(in.punterosIndirectos[0],bufferIndirectos0);
+				if(bufferIndirectos0[blogico]==0){
+					bufferIndirectos0[blogico-pdir] = reservar_bloque();
+					in.numBloquesOcupados++;
+					bwrite(in.punterosIndirectos[0],bufferIndirectos0);
+					return bufferIndirectos0[blogico-pdir];
+				}else{
+					return bufferIndirectos0[blogico-pdir];
+				}
+			}
+			escribir_inodo(in,ninodo);
+			break;
+		default:
+			return -2;
+			break;
+		}
+	}else if (blogico < pdir+npun+pind1){
+		punt0 = (blogico -(pdir+npun)) %npun;
+		punt1 = (blogico -(pdir+npun)) /npun;
+		switch(reservar){
+		case '0'://query mode
+			if(in.punterosIndirectos[1] == 0){
+				return -1;
+			} else {
+				bread(in.punterosIndirectos[1]-pdir,bufferIndirectos1);
+				if (bufferIndirectos1[punt1]==0){
+					return -4;
+				}else{
+					bread(in.punterosIndirectos[0]-pdir,bufferIndirectos0);
+
+				}
+			}
+
+
+
+
+			break;
+		case '1'://write mode
+			//argo
+			break;
+		default:
+			return -2;
 			break;
 		}
 	}
