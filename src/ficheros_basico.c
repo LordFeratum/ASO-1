@@ -77,17 +77,18 @@ int initMB(unsigned int nbloques){
 
 int initAI(unsigned int inodos){ //Sobra inodos
 	struct superbloque sb;
-	int i,j,tamino;
+	int i,j,tamino, x;
 	tamino = blocksize/sizeof(inodos);
 	struct inodo Ainodes[tamino];//Cálculos son 7 pero según la hoja 128
 
 	bread(posSB,&sb);
 	//printf("%d \n",sb.posPrimerBloqueAI); //Muestro posición para comprobar que la lectura de sp correcta
-
+	x = 1;
 	for (i=sb.posPrimerBloqueAI; i<=sb.posUltimoBloqueAI;i++){
-		for (j=0;j<=7;j++){
-			Ainodes[j].punterosDirectos[0]=i+j+1; //Enllaç a seguent inode lliure
+		for (j=0;j<=blocksize/tamino;j++){
+			Ainodes[j].punterosDirectos[0]=x; //Enllaç a seguent inode lliure
 			Ainodes[j].tipo='l'; //Tipo (libre, directorio o fichero)
+			x++;
 		}
 		if (i==sb.posUltimoBloqueAI){
 			Ainodes[7].punterosDirectos[0]=9999999;
@@ -168,7 +169,7 @@ int reservar_bloque(){
 	bread(posSB,&sb);		//Lectura superbloque
 
 	if(sb.cantBloquesLibres>0){
-		bread(sb.posPrimerBloqueMB,&mapa_bits);
+		bread(sb.posPrimerBloqueMB,mapa_bits);
 		n = sb.posPrimerBloqueMB;
 		memset (bufferAux, 255, blocksize);
 		do{
@@ -176,12 +177,14 @@ int reservar_bloque(){
 				break;
 			}else{
 				n++;
-				bread(n,&mapa_bits);
+				bread(n,mapa_bits);
 			}
 		}while(n<=sb.posUltimoBloqueMB);
 
-		pos_byte= n / 8;
-		pos_bit= n % 8;
+		pos_byte= 0;
+		pos_bit= 0;
+
+
 		byte = mapa_bits[n];
 
 		unsigned char mascara = 128; // 10000000
@@ -190,7 +193,7 @@ int reservar_bloque(){
 		if (byte < 255) { // hay bits a 0 en el byte
 			while (byte & mascara) { // operador AND para bits
 				byte <<= 1; // desplazamiento de bits a la izquierda
-				i++;
+				pos_bit++;
 			}
 		}
 		n = ((n-sb.posPrimerBloqueMB)*blocksize+pos_byte)*8+pos_bit; //No tenemos claro n
@@ -269,23 +272,25 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
 
 	struct inodo Ainodes[tamino];
 	int conta = ino%tamino;
+	ino=sb.posPrimerInodoLibre;
 	sb.posPrimerInodoLibre=Ainodes[conta].punterosDirectos[0];
 	sb.cantInodosLibres--;
 	bread(nbloque,&Ainodes);
 	Ainodes[conta]=in;
-	bwrite(nbloque,&Ainodes);
+	escribir_inodo(in,ino);
 	bwrite(posSB,&sb);
 	return ino;
 }
 
 int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned int *bfisico, char reservar){
-	int pdir,npun,pind1,pind2,ino,nbloque,i,punt0,punt1;
+	int pdir,npun,pind1,pind2,ino,nbloque,i,punt0,punt1,punt2;
 	struct inodo in;
 
 	pdir = 12;
 	npun = 256;
 	int bufferIndirectos0[npun];
 	int bufferIndirectos1[npun];
+	int bufferIndirectos2[npun];
 	pind1 = npun*npun;
 	pind2 = npun*pind1;
 
@@ -326,7 +331,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 			if (in.punterosIndirectos[0] == 0){
 				return -1;
 			}else{
-				if (bread(in.punterosIndirectos[0]-pdir,bufferIndirectos0)){
+				if (bread(in.punterosIndirectos[0]-pdir,bufferIndirectos0)){ //Resta?
 					return -1;
 				}else{
 					return bufferIndirectos0[blogico-npun];
@@ -367,29 +372,146 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 			if(in.punterosIndirectos[1] == 0){
 				return -1;
 			} else {
-				bread(in.punterosIndirectos[1]-pdir,bufferIndirectos1);
+				bread(in.punterosIndirectos[1]-pdir,bufferIndirectos1); //Resta?
 				if (bufferIndirectos1[punt1]==0){
 					return -4;
 				}else{
-					bread(in.punterosIndirectos[0]-pdir,bufferIndirectos0);
-
+					bread(in.punterosIndirectos[0]-pdir,bufferIndirectos0); //Resta?
+					if (bufferIndirectos0[punt0]==0){
+						return -1;
+					}else{
+						*bfisico = bufferIndirectos0[punt0];
+					}
 				}
 			}
-
-
-
-
 			break;
 		case '1'://write mode
-			//argo
-			break;
-		default:
-			return -2;
+			if (in.punterosIndirectos[1]==0){
+				in.punterosIndirectos[1] = reservar_bloque();
+				for (i=0; i<npun;i++){
+					bufferIndirectos1[i]=0;
+				}
+				bufferIndirectos1 [punt1]= reservar_bloque();
+				for (i=0; i<npun;i++){
+					bufferIndirectos0[i]=0;
+				}
+				bufferIndirectos0[punt0] = reservar_bloque();
+				in.numBloquesOcupados++;
+				bwrite(in.punterosIndirectos[1], *bufferIndirectos1);
+				bwrite(bufferIndirectos1[punt1], *bufferIndirectos0);
+				if (bufferIndirectos0[punt0]==0){
+					return -1;
+				}else{
+					*bfisico = bufferIndirectos0[punt0];
+				}
+			}else{
+				bread(in.punterosIndirectos[1],bufferIndirectos1);
+				bread(bufferIndirectos1[punt1],bufferIndirectos0);
+				if (bufferIndirectos0[punt0]==0){
+					bufferIndirectos0[punt0] = reservar_bloque();
+					in.numBloquesOcupados++;
+					bwrite(bufferIndirectos1[punt1], *bufferIndirectos0);
+					*bfisico = bufferIndirectos0[punt0];
+				}else{
+					*bfisico = bufferIndirectos0[punt0];
+				}
+			}
 			break;
 		}
+		escribir_inodo(in,ninodo);
+	}else if(blogico < pdir+npun+pind1+pind2){
+		punt2 = (blogico - (pdir+npun+pind1))/pind1;
+		punt1 = ((blogico -(pdir+npun+pind1)) %pind1)/npun;
+		punt0 = ((blogico -(pdir+npun+pind1))% pind1)%npun;
+		switch(reservar){
+		case '0':
+			if(in.punterosIndirectos[2] == 0){
+				return -1;
+			}else{
+				bread(in.punterosIndirectos[2]-pdir,bufferIndirectos2); //Resta?
+				if (bufferIndirectos2[punt2]==0){
+					return -1;
+				}else{
+					bread(bufferIndirectos2[punt2],bufferIndirectos1);
+					if (bufferIndirectos1[punt1]==0){
+						return -1;
+					}else{
+						bread(bufferIndirectos1[punt1],bufferIndirectos0);
+						if (bufferIndirectos0[punt0]==0){
+							return -1;
+						}else{
+							*bfisico = bufferIndirectos0[punt0];
+						}
+					}
+				}
+			}
+		break;
+		case '1':
+			if(in.punterosIndirectos[2] == 0){
+				in.punterosIndirectos[2] = reservar_bloque();
+				for (i=0; i<npun;i++){
+					bufferIndirectos2[i]=0;
+				}
+				bufferIndirectos2[punt2] = reservar_bloque();
+				for (i=0; i<npun;i++){
+					bufferIndirectos1[i]=0;
+				}
+				bufferIndirectos1[punt1] = reservar_bloque();
+				for (i=0; i<npun;i++){
+					bufferIndirectos0[i]=0;
+				}
+				bufferIndirectos0[punt0] = reservar_bloque();
+				in.numBloquesOcupados++;
+				bwrite(in.punterosIndirectos[2], *bufferIndirectos2);
+				bwrite(bufferIndirectos2[punt2], *bufferIndirectos1);
+				bwrite(bufferIndirectos1[punt1], *bufferIndirectos0);
+				*bfisico = bufferIndirectos0[punt0];
+			}else{
+				bread(in.punterosIndirectos[2]-pdir,bufferIndirectos2);
+				if(bufferIndirectos2[punt2]==0){
+					bufferIndirectos2[punt2] = reservar_bloque();
+					for (i=0; i<npun;i++){
+						bufferIndirectos1[i]=0;
+					}
+					bufferIndirectos1[punt1] = reservar_bloque();
+					for (i=0; i<npun;i++){
+						bufferIndirectos0[i]=0;
+					}
+					bufferIndirectos0[punt0] = reservar_bloque();
+					in.numBloquesOcupados++;
+					bwrite(in.punterosIndirectos[2], *bufferIndirectos2);
+					bwrite(bufferIndirectos2[punt2], *bufferIndirectos1);
+					bwrite(bufferIndirectos1[punt1], *bufferIndirectos0);
+					*bfisico = bufferIndirectos0[punt0];
+				}else{
+					bufferIndirectos2[punt2] = reservar_bloque();
+					if (bufferIndirectos2[punt2]== 0){
+						bufferIndirectos1[punt1] = reservar_bloque();
+						for (i=0; i<npun;i++){
+							bufferIndirectos0[i]=0;
+						}
+						bufferIndirectos0[punt0] = reservar_bloque();
+						in.numBloquesOcupados++;
+						bwrite(bufferIndirectos2[punt2], *bufferIndirectos1);
+						bwrite(bufferIndirectos1[punt1], *bufferIndirectos0);
+						*bfisico = bufferIndirectos0[punt0];
+					}else{
+						bufferIndirectos1[punt1] = reservar_bloque();
+						if (bufferIndirectos0[punt0] == 0){
+							bufferIndirectos0[punt0] = reservar_bloque();
+							in.numBloquesOcupados++;
+							bwrite(bufferIndirectos1[punt1], *bufferIndirectos0);
+							*bfisico = bufferIndirectos0[punt0];
+						}else{
+							*bfisico = bufferIndirectos0[punt0];
+						}
+					}
+				}
+			}
+		break;
+		}
+		escribir_inodo(in,ninodo);
 	}
-
-
 }
 
 

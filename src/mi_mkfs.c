@@ -21,6 +21,7 @@ int main(int argc, char **argv){
 	unsigned int n_bloques = atoi(argv[2]);
 
 	unsigned char buf[blocksize];
+	struct superbloque sb;
 
 	memset(buf,0,blocksize);
 
@@ -49,6 +50,8 @@ int main(int argc, char **argv){
 	}else{
 		printf("Array de inodes escrito \n");
 	}
+	int c = sizeof(sb);
+	printf("%d",c);
 
 
 	bumount();
