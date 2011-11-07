@@ -331,7 +331,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 			if (in.punterosIndirectos[0] == 0){
 				return -1;
 			}else{
-				if (bread(in.punterosIndirectos[0]-pdir,bufferIndirectos0)){ //Resta?
+				if (bread(in.punterosIndirectos[0],bufferIndirectos0)){
 					return -1;
 				}else{
 					return bufferIndirectos0[blogico-npun];
@@ -372,11 +372,11 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 			if(in.punterosIndirectos[1] == 0){
 				return -1;
 			} else {
-				bread(in.punterosIndirectos[1]-pdir,bufferIndirectos1); //Resta?
+				bread(in.punterosIndirectos[1],bufferIndirectos1);
 				if (bufferIndirectos1[punt1]==0){
 					return -4;
 				}else{
-					bread(in.punterosIndirectos[0]-pdir,bufferIndirectos0); //Resta?
+					bread(in.punterosIndirectos[0],bufferIndirectos0);
 					if (bufferIndirectos0[punt0]==0){
 						return -1;
 					}else{
