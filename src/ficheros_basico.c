@@ -78,7 +78,7 @@ int initMB(unsigned int nbloques){
 int initAI(unsigned int inodos){ //Sobra inodos
 	struct superbloque sb;
 	int i,j,tamino, x;
-	tamino = blocksize/sizeof(inodos);
+	tamino = blocksize/T_INODO;
 	struct inodo Ainodes[tamino];//Cálculos son 7 pero según la hoja 128
 
 	bread(posSB,&sb);
@@ -220,7 +220,7 @@ int escribir_inodo(struct inodo inodo, unsigned int ninodo){
 	int ino,tamino;
 	bread(posSB,&sb);		//Lectura superbloque
 	ino = sb.posPrimerBloqueAI;
-	tamino = blocksize/sizeof(inodo);
+	tamino = blocksize/T_INODO;
 	ino = ninodo/tamino+ino;
 	struct inodo Ainodes[tamino];
 	bread(ino,&Ainodes);
@@ -236,7 +236,7 @@ struct inodo leer_inodo(unsigned int ninodo){
 	struct inodo inodo;
 	bread(posSB,&sb);		//Lectura superbloque
 	ino = sb.posPrimerBloqueAI;
-	tamino = blocksize/sizeof(inodo);
+	tamino = blocksize/T_INODO;
 	int conta = ninodo%tamino;
 	ino = ninodo/tamino+ino;
 	struct inodo Ainodes[tamino];
@@ -252,7 +252,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
 	illiure = sb.posPrimerInodoLibre; //Debe pasar a bloque
 	ino = sb.posPrimerBloqueAI;
 	struct inodo in;
-	tamino = blocksize/sizeof(in);
+	tamino = blocksize/T_INODO;
 	nbloque = illiure/tamino+ino;
 
 	in.tipo=tipo;
@@ -283,7 +283,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
 }
 
 int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned int *bfisico, char reservar){
-	int pdir,npun,pind1,pind2,ino,nbloque,i,punt0,punt1,punt2;
+	int pdir,npun,pind1,pind2,nbloque,i,punt0,punt1,punt2;
 	struct inodo in;
 
 	pdir = 12;
@@ -381,6 +381,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 						return -1;
 					}else{
 						*bfisico = bufferIndirectos0[punt0];
+						return 0;
 					}
 				}
 			}
@@ -397,12 +398,13 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 				}
 				bufferIndirectos0[punt0] = reservar_bloque();
 				in.numBloquesOcupados++;
-				bwrite(in.punterosIndirectos[1], *bufferIndirectos1);
-				bwrite(bufferIndirectos1[punt1], *bufferIndirectos0);
+				bwrite(in.punterosIndirectos[1], bufferIndirectos1);
+				bwrite(bufferIndirectos1[punt1], bufferIndirectos0);
 				if (bufferIndirectos0[punt0]==0){
 					return -1;
 				}else{
 					*bfisico = bufferIndirectos0[punt0];
+					return 0;
 				}
 			}else{
 				bread(in.punterosIndirectos[1],bufferIndirectos1);
@@ -410,10 +412,12 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 				if (bufferIndirectos0[punt0]==0){
 					bufferIndirectos0[punt0] = reservar_bloque();
 					in.numBloquesOcupados++;
-					bwrite(bufferIndirectos1[punt1], *bufferIndirectos0);
+					bwrite(bufferIndirectos1[punt1], bufferIndirectos0);
 					*bfisico = bufferIndirectos0[punt0];
+					return 0;
 				}else{
 					*bfisico = bufferIndirectos0[punt0];
+					return 0;
 				}
 			}
 			break;
@@ -441,6 +445,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 							return -1;
 						}else{
 							*bfisico = bufferIndirectos0[punt0];
+							return 0;
 						}
 					}
 				}
@@ -462,10 +467,11 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 				}
 				bufferIndirectos0[punt0] = reservar_bloque();
 				in.numBloquesOcupados++;
-				bwrite(in.punterosIndirectos[2], *bufferIndirectos2);
-				bwrite(bufferIndirectos2[punt2], *bufferIndirectos1);
-				bwrite(bufferIndirectos1[punt1], *bufferIndirectos0);
+				bwrite(in.punterosIndirectos[2], bufferIndirectos2);
+				bwrite(bufferIndirectos2[punt2], bufferIndirectos1);
+				bwrite(bufferIndirectos1[punt1], bufferIndirectos0);
 				*bfisico = bufferIndirectos0[punt0];
+				return 0;
 			}else{
 				bread(in.punterosIndirectos[2]-pdir,bufferIndirectos2);
 				if(bufferIndirectos2[punt2]==0){
@@ -479,10 +485,11 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 					}
 					bufferIndirectos0[punt0] = reservar_bloque();
 					in.numBloquesOcupados++;
-					bwrite(in.punterosIndirectos[2], *bufferIndirectos2);
-					bwrite(bufferIndirectos2[punt2], *bufferIndirectos1);
-					bwrite(bufferIndirectos1[punt1], *bufferIndirectos0);
+					bwrite(in.punterosIndirectos[2], bufferIndirectos2);
+					bwrite(bufferIndirectos2[punt2], bufferIndirectos1);
+					bwrite(bufferIndirectos1[punt1], bufferIndirectos0);
 					*bfisico = bufferIndirectos0[punt0];
+					return 0;
 				}else{
 					bufferIndirectos2[punt2] = reservar_bloque();
 					if (bufferIndirectos2[punt2]== 0){
@@ -492,18 +499,21 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 						}
 						bufferIndirectos0[punt0] = reservar_bloque();
 						in.numBloquesOcupados++;
-						bwrite(bufferIndirectos2[punt2], *bufferIndirectos1);
-						bwrite(bufferIndirectos1[punt1], *bufferIndirectos0);
+						bwrite(bufferIndirectos2[punt2], bufferIndirectos1);
+						bwrite(bufferIndirectos1[punt1], bufferIndirectos0);
 						*bfisico = bufferIndirectos0[punt0];
+						return 0;
 					}else{
 						bufferIndirectos1[punt1] = reservar_bloque();
 						if (bufferIndirectos0[punt0] == 0){
 							bufferIndirectos0[punt0] = reservar_bloque();
 							in.numBloquesOcupados++;
-							bwrite(bufferIndirectos1[punt1], *bufferIndirectos0);
+							bwrite(bufferIndirectos1[punt1], bufferIndirectos0);
 							*bfisico = bufferIndirectos0[punt0];
+							return 0;
 						}else{
 							*bfisico = bufferIndirectos0[punt0];
+							return 0;
 						}
 					}
 				}
@@ -511,7 +521,190 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 		break;
 		}
 		escribir_inodo(in,ninodo);
+		return 0;
 	}
+}
+
+int liberar_inodo(unsigned int ninodo){
+	int ino;
+	struct superbloque sb;
+	struct inodo in;
+
+	bread(posSB,&sb);
+	in = leer_inodo(ninodo);
+	liberar_bloques_inodo(ninodo,blogico);//Falta BLOGICO!!!!!! WTF!
+	in.tipo='l';
+	in.punterosDirectos[0]=sb.posPrimerInodoLibre;
+	sb.posPrimerInodoLibre=ninodo;
+	sb.cantInodosLibres++; //Falta algo?
+	escribir_inodo(in,ninodo);
+	bwrite(posSB,&sb);
+	return ninodo;
+}
+
+int liberar_bloques_inodo(unsigned int ninodo, unsigned int blogico){
+	struct inodo in;
+
+	int zero = 0;
+	int i,blog,punt0,punt1,punt2;
+	int n = 0;
+	int num_pDirectos = 12;
+	int num_punteros = 256;
+	int num_punteros2 = num_punteros * num_punteros;
+	int num_punteros3 = num_punteros2 * num_punteros;
+	int bufferIndirectos[num_punteros];
+	int bufferIndirectos0[num_punteros];
+	int bufferIndirectos1[num_punteros];
+	int bufferIndirectos2[num_punteros];
+
+	in = leer_inodo(ninodo);
+	int ultimoBloque = in.tamEnBytesLog/blocksize;
+
+	for (i=0; i<num_punteros;i++){
+		bufferIndirectos[i]=0;
+	}
+
+	for (blog=blogico;blog <= ultimoBloque; blog++){
+		if (blog< num_pDirectos){
+			if (in.punterosDirectos[blog] > 0){
+				liberar_bloque(blog);
+				in.punterosDirectos[blog] = 0;
+				in.numBloquesOcupados--;
+			}
+		}
+		else if(blog < num_pDirectos + num_punteros){
+			if (in.punterosIndirectos[0]==0){
+				return -1;
+			}else{
+				bread(in.punterosIndirectos[0],bufferIndirectos0);
+				if (bufferIndirectos0[blog-num_pDirectos]==0){
+					return -1;
+				}else{
+					liberar_bloque(bufferIndirectos0[blog-num_pDirectos]);
+					bufferIndirectos0[blog-num_pDirectos]=0;
+					in.numBloquesOcupados--;
+					for (n=0;n<=num_punteros;n++){
+						if (bufferIndirectos0[n]!=0){
+							zero = 1;
+						}
+					}
+					if (zero==0){
+						liberar_bloque(in.punterosIndirectos[0]);
+						in.punterosIndirectos[0]=0;
+					}else{
+						bwrite(in.punterosIndirectos[0],bufferIndirectos0);
+					}
+				}
+			}
+		}
+		else if(blog<num_pDirectos+num_punteros+num_punteros2){
+			punt0 = (blog - (num_pDirectos + num_punteros)) % num_punteros;
+			punt1 = (blog - (num_pDirectos + num_punteros)) / num_punteros;
+			if (in.punterosIndirectos[1]==0){
+				return -1;
+			}else{
+				bread(in.punterosIndirectos[1],bufferIndirectos1);
+				if (bufferIndirectos1[punt1]==0){
+					return -1;
+				}else{
+					bread(bufferIndirectos1[punt1],bufferIndirectos0);
+					if (bufferIndirectos0[punt0]==0){
+						return -1;
+					}else{
+						liberar_bloque(bufferIndirectos0[punt0]);
+						bufferIndirectos0[punt0]=0;
+						in.numBloquesOcupados--;
+						for (n=0;n<=num_punteros;n++){
+							if (bufferIndirectos0[n]!=0){
+								zero = 1;
+							}
+						}
+						if (zero==0){
+							liberar_bloque(bufferIndirectos1[punt1]);
+							bufferIndirectos1[punt1]=0;
+						}else{
+							bwrite(bufferIndirectos1[punt1],bufferIndirectos0);
+						}
+						zero = 0;
+						for (n=0;n<=num_punteros;n++){
+							if (bufferIndirectos1[n]!=0){
+								zero = 1;
+							}
+						}
+						if (zero==0){
+							liberar_bloque(in.punterosIndirectos[1]);
+							in.punterosIndirectos[1]=0;
+						}else{
+							bwrite(in.punterosIndirectos[1],bufferIndirectos1);
+						}
+					}
+				}
+			}
+		}
+		else if(blog < num_pDirectos + num_punteros + num_punteros2 + num_punteros3){
+			punt0 = ((blog - (num_pDirectos + num_punteros + num_punteros2)) % num_punteros2) % num_punteros;
+			punt1 = ((blog - (num_pDirectos + num_punteros + num_punteros2)) % num_punteros2) / num_punteros;
+			punt2 = (blog - (num_pDirectos + num_punteros + num_punteros2)) / num_punteros2;
+			if (in.punterosIndirectos[2]==0){
+				return -1;
+			}else{
+				bread(in.punterosIndirectos[2],bufferIndirectos2);
+				if (bufferIndirectos2[punt2]==0){
+					return -1;
+				}else{
+					bread(bufferIndirectos2[punt2],bufferIndirectos1);
+					if (bufferIndirectos1[punt1]==0){
+						return -1;
+					}else{
+						bread(bufferIndirectos1[punt1],bufferIndirectos0);
+						if (bufferIndirectos0[punt0]==0){
+							return -1;
+						}else{
+							liberar_bloque(bufferIndirectos0[punt0]);
+							bufferIndirectos0[punt0]=0;
+							in.numBloquesOcupados--;
+							for (n=0;n<=num_punteros;n++){
+								if (bufferIndirectos0[n]!=0){
+									zero = 1;
+								}
+							}
+							if (zero==0){
+								liberar_bloque(bufferIndirectos1[punt1]);
+								bufferIndirectos1[punt1]=0;
+							}else{
+								bwrite(bufferIndirectos1[punt1],bufferIndirectos0);
+							}
+							zero = 0;
+							for (n=0;n<=num_punteros;n++){
+								if (bufferIndirectos1[n]!=0){
+									zero = 1;
+								}
+							}
+							if (zero==0){
+								liberar_bloque(bufferIndirectos2[punt2]);
+								bufferIndirectos2[punt2]=0;
+							}else{
+								bwrite(bufferIndirectos2[punt2],bufferIndirectos1);
+							}
+							zero = 0;
+							for (n=0;n<=num_punteros;n++){
+								if (bufferIndirectos2[n]!=0){
+									zero = 1;
+								}
+							}
+							if (zero==0){
+								liberar_bloque(in.punterosIndirectos[2]);
+								in.punterosIndirectos[2]=0;
+							}else{
+								bwrite(in.punterosIndirectos[2],bufferIndirectos2);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	escribir_inodo(in,ninodo);
 }
 
 

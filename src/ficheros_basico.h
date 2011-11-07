@@ -46,7 +46,7 @@ struct inodo{
 	unsigned int numBloquesOcupados; //Cantidad de bloques ocupados en la zona de datos
 	unsigned int punterosDirectos[12]; //12 punteros a bloques directos
 	unsigned int punterosIndirectos[3]; //3 punteros a bloques indirectos:1 puntero indirecto simple, 1 puntero indirecto doble, 1 puntero indirecto triple
-	char padding[T_INODO-(2*sizeof(char))-(19*sizeof(int))-(3*sizeof(time_t))];
+	char padding[T_INODO-(2*sizeof(char))-(18*sizeof(int))-(3*sizeof(time_t))];
 };
 
 int tamMB (unsigned int nbloques);
@@ -62,3 +62,5 @@ int escribir_inodo(struct inodo inodo, unsigned int ninodo);
 struct inodo leer_inodo(unsigned int ninodo);
 int reservar_inodo(unsigned char tipo, unsigned char permisos);
 int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned int *bfisico, char reservar);
+int liberar_inodo(unsigned int ninodo);
+int liberar_bloques_inodo(unsigned int ninodo, unsigned int blogico);
