@@ -432,7 +432,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 			if(in.punterosIndirectos[2] == 0){
 				return -1;
 			}else{
-				bread(in.punterosIndirectos[2]-pdir,bufferIndirectos2); //Resta?
+				bread(in.punterosIndirectos[2],bufferIndirectos2);
 				if (bufferIndirectos2[punt2]==0){
 					return -1;
 				}else{
@@ -532,11 +532,11 @@ int liberar_inodo(unsigned int ninodo){
 
 	bread(posSB,&sb);
 	in = leer_inodo(ninodo);
-	liberar_bloques_inodo(ninodo,blogico);//Falta BLOGICO!!!!!! WTF!
+	liberar_bloques_inodo(ninodo,0);
 	in.tipo='l';
 	in.punterosDirectos[0]=sb.posPrimerInodoLibre;
 	sb.posPrimerInodoLibre=ninodo;
-	sb.cantInodosLibres++; //Falta algo?
+	sb.cantInodosLibres++;
 	escribir_inodo(in,ninodo);
 	bwrite(posSB,&sb);
 	return ninodo;
@@ -583,12 +583,7 @@ int liberar_bloques_inodo(unsigned int ninodo, unsigned int blogico){
 					liberar_bloque(bufferIndirectos0[blog-num_pDirectos]);
 					bufferIndirectos0[blog-num_pDirectos]=0;
 					in.numBloquesOcupados--;
-					for (n=0;n<=num_punteros;n++){
-						if (bufferIndirectos0[n]!=0){
-							zero = 1;
-						}
-					}
-					if (zero==0){
+					if (memcmp(bufferIndirectos0, bufferIndirectos, num_punteros)==0){
 						liberar_bloque(in.punterosIndirectos[0]);
 						in.punterosIndirectos[0]=0;
 					}else{
@@ -614,24 +609,13 @@ int liberar_bloques_inodo(unsigned int ninodo, unsigned int blogico){
 						liberar_bloque(bufferIndirectos0[punt0]);
 						bufferIndirectos0[punt0]=0;
 						in.numBloquesOcupados--;
-						for (n=0;n<=num_punteros;n++){
-							if (bufferIndirectos0[n]!=0){
-								zero = 1;
-							}
-						}
-						if (zero==0){
+						if (memcmp(bufferIndirectos0, bufferIndirectos, num_punteros)==0){
 							liberar_bloque(bufferIndirectos1[punt1]);
 							bufferIndirectos1[punt1]=0;
 						}else{
 							bwrite(bufferIndirectos1[punt1],bufferIndirectos0);
 						}
-						zero = 0;
-						for (n=0;n<=num_punteros;n++){
-							if (bufferIndirectos1[n]!=0){
-								zero = 1;
-							}
-						}
-						if (zero==0){
+						if (memcmp(bufferIndirectos1, bufferIndirectos, num_punteros)==0){
 							liberar_bloque(in.punterosIndirectos[1]);
 							in.punterosIndirectos[1]=0;
 						}else{
@@ -663,36 +647,19 @@ int liberar_bloques_inodo(unsigned int ninodo, unsigned int blogico){
 							liberar_bloque(bufferIndirectos0[punt0]);
 							bufferIndirectos0[punt0]=0;
 							in.numBloquesOcupados--;
-							for (n=0;n<=num_punteros;n++){
-								if (bufferIndirectos0[n]!=0){
-									zero = 1;
-								}
-							}
-							if (zero==0){
+							if (memcmp(bufferIndirectos0, bufferIndirectos, num_punteros)==0){
 								liberar_bloque(bufferIndirectos1[punt1]);
 								bufferIndirectos1[punt1]=0;
 							}else{
 								bwrite(bufferIndirectos1[punt1],bufferIndirectos0);
 							}
-							zero = 0;
-							for (n=0;n<=num_punteros;n++){
-								if (bufferIndirectos1[n]!=0){
-									zero = 1;
-								}
-							}
-							if (zero==0){
+							if (memcmp(bufferIndirectos1, bufferIndirectos, num_punteros)==0){
 								liberar_bloque(bufferIndirectos2[punt2]);
 								bufferIndirectos2[punt2]=0;
 							}else{
 								bwrite(bufferIndirectos2[punt2],bufferIndirectos1);
 							}
-							zero = 0;
-							for (n=0;n<=num_punteros;n++){
-								if (bufferIndirectos2[n]!=0){
-									zero = 1;
-								}
-							}
-							if (zero==0){
+							if (memcmp(bufferIndirectos2, bufferIndirectos, num_punteros)==0){
 								liberar_bloque(in.punterosIndirectos[2]);
 								in.punterosIndirectos[2]=0;
 							}else{
