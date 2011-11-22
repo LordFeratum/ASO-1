@@ -188,7 +188,6 @@ int reservar_bloque(){
 		byte = mapa_bits[n];
 
 		unsigned char mascara = 128; // 10000000
-		int i = 0;
 
 		if (byte < 255) { // hay bits a 0 en el byte
 			while (byte & mascara) { // operador AND para bits
@@ -521,12 +520,12 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int blogico, unsigned in
 		break;
 		}
 		escribir_inodo(in,ninodo);
-		return 0;
+
 	}
+	return 0;
 }
 
 int liberar_inodo(unsigned int ninodo){
-	int ino;
 	struct superbloque sb;
 	struct inodo in;
 
@@ -545,9 +544,7 @@ int liberar_inodo(unsigned int ninodo){
 int liberar_bloques_inodo(unsigned int ninodo, unsigned int blogico){
 	struct inodo in;
 
-	int zero = 0;
 	int i,blog,punt0,punt1,punt2;
-	int n = 0;
 	int num_pDirectos = 12;
 	int num_punteros = 256;
 	int num_punteros2 = num_punteros * num_punteros;
@@ -672,6 +669,7 @@ int liberar_bloques_inodo(unsigned int ninodo, unsigned int blogico){
 		}
 	}
 	escribir_inodo(in,ninodo);
+	return 0;
 }
 
 
