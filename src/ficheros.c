@@ -53,7 +53,9 @@ int mi_write_f(unsigned int inodo, const void *buf_original, unsigned int offset
 				bwrite (bfisico,buf_bloque);
 			}
 		}
-		in.tamEnBytesLog=offset+nbytes;
+		if (in.tamEnBytesLog<offset+nbytes){
+			in.tamEnBytesLog=offset+nbytes;
+		}
 		int numbloq = in.numBloquesOcupados;
 		in.numBloquesOcupados=numbloq+(dbloc-pbloc);
 		in.ctime=time(NULL);

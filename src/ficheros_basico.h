@@ -38,6 +38,7 @@ struct superbloque{
 struct inodo{
 	unsigned char tipo; //Tipo (libre, directorio o fichero)
 	unsigned char permisos; //Permisos (lectura y/o escritura y/o ejecución)
+	unsigned char reservado_alineacion[2];
 	time_t atime; //Fecha y hora del último acceso a datos: atime
 	time_t mtime; //Fecha y hora de la última modificación de datos: mtime
 	time_t ctime; //Fecha y hora de la última modificación del inodo: ctime
@@ -46,7 +47,7 @@ struct inodo{
 	unsigned int numBloquesOcupados; //Cantidad de bloques ocupados en la zona de datos
 	unsigned int punterosDirectos[12]; //12 punteros a bloques directos
 	unsigned int punterosIndirectos[3]; //3 punteros a bloques indirectos:1 puntero indirecto simple, 1 puntero indirecto doble, 1 puntero indirecto triple
-	char padding[T_INODO-(2*sizeof(char))-(18*sizeof(int))-(3*sizeof(time_t))];
+	char padding[T_INODO-88];
 };
 
 int tamMB (unsigned int nbloques);
