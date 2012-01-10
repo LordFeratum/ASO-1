@@ -9,7 +9,6 @@
 // fichero ficheros.h
 
 #include <time.h>
-#include "bloques.h"
 #include "ficheros_basico.h"
 
 struct STAT{

@@ -24,7 +24,7 @@ int mi_write_f(unsigned int inodo, const void *buf_original, unsigned int offset
 		dbloc = (offset + nbytes - 1) / blocksize;
 
 		//primer bloc
-		if (traducir_bloque_inodo(inodo,pbloc,&bfisico,1)){ //Mirar bfisico
+		if (traducir_bloque_inodo(inodo,pbloc,&bfisico,'1')>-1){ //Mirar bfisico
 			bread(bfisico,buf_bloque);
 			rbloc = offset % blocksize;
 			memcpy(buf_bloque + rbloc,buf_original, blocksize - rbloc);
@@ -37,7 +37,8 @@ int mi_write_f(unsigned int inodo, const void *buf_original, unsigned int offset
 		//blocs intermitjos
 		for (i = (pbloc + 1); i < dbloc; i++){
 			memcpy(buf_bloque,buf_original + (blocksize - rbloc) + (i - pbloc - 1) * blocksize,blocksize);
-			if (traducir_bloque_inodo(inodo,i, &bfisico, 1)==0){
+			if (traducir_bloque_inodo(inodo,i, &bfisico, '1')==0){
+				printf("Bloque escrito: %d \n",bfisico);
 				bwrite(bfisico,buf_bloque);
 			}else{
 				return -1;
@@ -46,13 +47,15 @@ int mi_write_f(unsigned int inodo, const void *buf_original, unsigned int offset
 
 		//darrer bloc
 		if (pbloc<dbloc){
-			if (traducir_bloque_inodo(inodo,dbloc,&bfisico,1)){ //Mirar bfisico
+			if (traducir_bloque_inodo(inodo,dbloc,&bfisico,'1')){ //Mirar bfisico
 				bread(bfisico,buf_bloque);
 				fbloc = (offset + nbytes - 1)/blocksize;
 				memcpy(buf_bloque,buf_original+ (blocksize - rbloc) + (dbloc - pbloc - 1) * blocksize, fbloc+1);
 				bwrite (bfisico,buf_bloque);
 			}
 		}
+
+		in = leer_inodo(inodo);
 		if (in.tamEnBytesLog<offset+nbytes){
 			in.tamEnBytesLog=offset+nbytes;
 		}
@@ -78,7 +81,7 @@ int mi_read_f(unsigned int inodo, void *buf_original, unsigned int offset, unsig
 		pbloc = offset / blocksize;
 		dbloc = (offset + nbytes - 1) / blocksize;
 
-		if (traducir_bloque_inodo(inodo,pbloc,&bfisico,0)){
+		if (traducir_bloque_inodo(inodo,pbloc,&bfisico,'0')){
 			bread(bfisico,buf_bloque);
 			rbloc = offset % blocksize;
 			memcpy(buf_original,buf_bloque + rbloc, blocksize - rbloc);
@@ -87,7 +90,7 @@ int mi_read_f(unsigned int inodo, void *buf_original, unsigned int offset, unsig
 		}
 
 		for (i = (pbloc + 1); i < dbloc; i++){
-			if (traducir_bloque_inodo(inodo,i, &bfisico, 0)==0){
+			if (traducir_bloque_inodo(inodo,i, &bfisico, '0')==0){
 				bread(bfisico,buf_bloque);
 				memcpy(buf_original + (blocksize - rbloc) + (i - pbloc - 1) * blocksize,buf_bloque,blocksize);
 			}else{
@@ -96,7 +99,7 @@ int mi_read_f(unsigned int inodo, void *buf_original, unsigned int offset, unsig
 		}
 
 		if (pbloc<dbloc){
-					if (traducir_bloque_inodo(inodo,dbloc,&bfisico,0)){ //Mirar bfisico
+					if (traducir_bloque_inodo(inodo,dbloc,&bfisico,'0')){ //Mirar bfisico
 						bread(bfisico,buf_bloque);
 						fbloc = (offset + nbytes - 1)/blocksize;
 						memcpy(buf_original+ (blocksize - rbloc) + (dbloc - pbloc - 1) * blocksize,buf_bloque, fbloc+1);

@@ -18,6 +18,7 @@
 #include <string.h>
 
 #define blocksize 1024 //bytes
+#define superblocksize 999999
 
 int bmount(const char *camino);
 int bumount();

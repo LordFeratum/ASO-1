@@ -4,11 +4,11 @@
  *  Created on: 22/11/2011
  *      Author: manuel
  */
-
-#include "bloques.h"
-#include "ficheros_basico.h"
-#include "ficheros.h"
 #include <string.h>
+
+#include "ficheros.h"
+#include "semaforo.h"
+
 
 struct entrada{
 	char nombre[60];
@@ -21,5 +21,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 int mi_creat(const char *camino, unsigned char modo);
 int mi_link(const char *camino1, const char *camino2);
 int mi_unlink(const char *camino);
+int mi_dir(const char *camino, char *buffer);
+int mi_chmod(const char *camino, unsigned char modo);
+int mi_stat(const char *camino, struct STAT *p_stat);
+int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes);
 
 

@@ -12,7 +12,6 @@
 
 #define posSB 0 //el superbloque se escribe en el primer bloque de nuestro FS
 #define T_INODO 128 //tamaño en bytes de un inodo
-struct inodo ino;
 #define dir 12
 #define indir0 256
 #define indir1 65536
