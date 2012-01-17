@@ -7,7 +7,6 @@
 #include <string.h>
 
 #include "ficheros.h"
-#include "semaforo.h"
 
 
 struct entrada{

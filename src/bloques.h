@@ -16,6 +16,7 @@
 #include <fcntl.h> /* Modos de apertura y función open()*/
 #include <stdlib.h> /* Funciones write() y close() */
 #include <string.h>
+#include "semaforo.h"
 
 #define blocksize 1024 //bytes
 #define superblocksize 999999

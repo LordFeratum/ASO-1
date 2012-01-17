@@ -17,12 +17,10 @@
 
 int main(int argc, char **argv){
 
-	if(argv!=3){
+	if(argc!=3){
+		printf("Número de argumentos incorrecto \n");
 		return -1;
-		printf("Número de argumentos incorrecto");
 	}
-	//int sem;
-	//iniciarSem(&sem);
 
 	unsigned int n_bloques = atoi(argv[2]);
 
@@ -73,7 +71,7 @@ int main(int argc, char **argv){
 	}
 	mi_chmod("/avion/", 4);
 
-	//mi_creat("/otro/", 7);
+	mi_creat("/otro/", 7);
 	//mi_creat("/nuevo/", 7);
 
 	/*if(mi_creat("/Prueba/", 7)<0){
@@ -89,7 +87,7 @@ int main(int argc, char **argv){
 	//mi_dir("/Prueba/", buffer);
 
 	//mi_write("/Prueba/", buf, 0, 1024);
-	//mi_creat("/prova/", 7);
+	//mi_creat("/prova/", 7);*/
 
 
 	bumount();

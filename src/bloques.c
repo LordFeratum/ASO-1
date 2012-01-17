@@ -12,6 +12,8 @@
 static int fichero = 0;
 
 int bmount (const char *camino){
+	int sem;
+	iniciarSem(&sem);
 	fichero = open(camino, O_RDWR|O_CREAT,0666);
 	if(fichero == -1){
 		printf("Error de apertura de archivo");
@@ -20,6 +22,11 @@ int bmount (const char *camino){
 }
 
 int bumount(){
+	int sem;
+	if(!sem){
+		obtenerSem(&sem);
+	}
+	eliminarSem(sem);
 	if(close(fichero) < 0)
 		printf("Error al cerrar de archivo");
 		return 1;

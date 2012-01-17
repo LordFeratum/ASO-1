@@ -27,7 +27,11 @@ int mi_write_f(unsigned int inodo, const void *buf_original, unsigned int offset
 		if (traducir_bloque_inodo(inodo,pbloc,&bfisico,'1')>-1){ //Mirar bfisico
 			bread(bfisico,buf_bloque);
 			rbloc = offset % blocksize;
-			memcpy(buf_bloque + rbloc,buf_original, blocksize - rbloc);
+			if(nbytes<=(blocksize-offset)){
+				memcpy(buf_bloque + rbloc,buf_original, nbytes);
+			}else{
+				memcpy(buf_bloque + rbloc,buf_original, blocksize - rbloc);
+			}
 			bwrite (bfisico,buf_bloque);
 		}else{
 			return -1;
@@ -85,7 +89,11 @@ int mi_read_f(unsigned int inodo, void *buf_original, unsigned int offset, unsig
 		if (traducir_bloque_inodo(inodo,pbloc,&bfisico,'0')>=0){
 			bread(bfisico,&buf_bloque);
 			rbloc = offset % blocksize;
-			memcpy(buf_original,buf_bloque + rbloc, blocksize - rbloc);
+			if(nbytes<=(blocksize-offset)){
+				memcpy(buf_original,buf_bloque + rbloc, nbytes);
+			}else{
+				memcpy(buf_original,buf_bloque + rbloc, blocksize - rbloc);
+			}
 		}else{
 			return -1;
 		}

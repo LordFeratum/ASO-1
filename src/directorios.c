@@ -108,12 +108,12 @@ int mi_creat(const char *camino, unsigned char modo){
 	unsigned int p_inodo= 0;
 	unsigned int p_entrada = 0;
 	int bEnt;
-	//if(!sem){
-	//	obtenerSem(&sem);
-	//}
-	//waitSem(sem);
+	if(!sem){
+		obtenerSem(&sem);
+	}
+	waitSem(sem);
 	bEnt= buscar_entrada(camino, &p_inodo_dir, &p_inodo,&p_entrada,'1',modo); //punteros?
-	//signalSem(sem);
+	signalSem(sem);
 	if(bEnt<0){
 		switch(bEnt){
 		case -1:
@@ -146,6 +146,7 @@ int mi_link(const char *camino1, const char *camino2){
 	}
 	waitSem(sem);
 	int rest = buscar_entrada(camino1,&p_inodo_dir,&p_inodo,&p_entrada,'0','0');
+	signalSem(sem);
 
 	if(rest<0){
 		switch(rest){
@@ -163,7 +164,6 @@ int mi_link(const char *camino1, const char *camino2){
 			break;
 
 		}
-		signalSem(sem);
 		return -1;
 	}
 	int ninodo = p_inodo;
@@ -172,6 +172,10 @@ int mi_link(const char *camino1, const char *camino2){
 	p_inodo = 0;
 	p_entrada = 0;
 
+	if(!sem){
+		obtenerSem(&sem);
+	}
+	waitSem(sem);
 	int bEnt = buscar_entrada(camino2,&p_inodo_dir,&p_inodo,&p_entrada,'1','0');
 
 	if(bEnt<0){
