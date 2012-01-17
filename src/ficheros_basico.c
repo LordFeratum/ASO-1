@@ -88,14 +88,11 @@ int initAI(unsigned int inodos){ //Sobra inodos
 			Ainodes[j].punterosDirectos[0]=x; //Enllaç a seguent inode lliure
 			Ainodes[j].tipo='l'; //Tipo (libre, directorio o fichero)
 			x++;
-			printf("prova2\n");
 		}
 		if (i==sb.posUltimoBloqueAI){
 			Ainodes[7].punterosDirectos[0]=9999999;
-			printf("prova3\n");
 		}
 		if(bwrite(i,&Ainodes)==-1){
-			printf("prova4\n");
 			return -1;
 		}
 	}
@@ -270,7 +267,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
 	for(i=0;i<=11;i++){
 		in.punterosDirectos[i]=0;
 	}
-	for(i=0;i<2;i++){
+	for(i=0;i<=2;i++){
 		in.punterosIndirectos[i]=0;
 	}
 

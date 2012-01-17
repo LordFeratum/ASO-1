@@ -75,14 +75,15 @@ int mi_read_f(unsigned int inodo, void *buf_original, unsigned int offset, unsig
 	int pbloc,dbloc,rbloc,i,fbloc;
 	struct inodo in;
 	in = leer_inodo(inodo);
+	memset(buf_bloque,0,blocksize);
 	if ((in.permisos & 4)!=4){
 		return -1;
 	}else{
 		pbloc = offset / blocksize;
 		dbloc = (offset + nbytes - 1) / blocksize;
 
-		if (traducir_bloque_inodo(inodo,pbloc,&bfisico,'0')){
-			bread(bfisico,buf_bloque);
+		if (traducir_bloque_inodo(inodo,pbloc,&bfisico,'0')>=0){
+			bread(bfisico,&buf_bloque);
 			rbloc = offset % blocksize;
 			memcpy(buf_original,buf_bloque + rbloc, blocksize - rbloc);
 		}else{
@@ -92,7 +93,7 @@ int mi_read_f(unsigned int inodo, void *buf_original, unsigned int offset, unsig
 		for (i = (pbloc + 1); i < dbloc; i++){
 			if (traducir_bloque_inodo(inodo,i, &bfisico, '0')==0){
 				bread(bfisico,buf_bloque);
-				memcpy(buf_original + (blocksize - rbloc) + (i - pbloc - 1) * blocksize,buf_bloque,blocksize);
+				memcpy(buf_original + (blocksize - rbloc) + (i - pbloc - 1) * blocksize,&buf_bloque,blocksize);
 			}else{
 				return -1;
 			}
@@ -101,10 +102,11 @@ int mi_read_f(unsigned int inodo, void *buf_original, unsigned int offset, unsig
 		if (pbloc<dbloc){
 					if (traducir_bloque_inodo(inodo,dbloc,&bfisico,'0')){ //Mirar bfisico
 						bread(bfisico,buf_bloque);
-						fbloc = (offset + nbytes - 1)/blocksize;
-						memcpy(buf_original+ (blocksize - rbloc) + (dbloc - pbloc - 1) * blocksize,buf_bloque, fbloc+1);
+						fbloc = (offset + nbytes - 1)%blocksize;
+						memcpy(buf_original+ (blocksize - rbloc) + (dbloc - pbloc - 1) * blocksize,&buf_bloque, fbloc+1);
 					}
 		}
+		in = leer_inodo(inodo);
 		in.atime=time(NULL);
 		escribir_inodo(in,inodo);
 		return nbytes;

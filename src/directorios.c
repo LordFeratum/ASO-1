@@ -12,6 +12,7 @@ int extraer_camino(const char *camino, char *inicial, char *final){
 	if (camino[0]!='/'){
 		return -1;
 	}
+	n=1;
 	while (camino[n]!='/'){
 		inicial[n-1] = camino[n];
 		n++;
@@ -21,6 +22,7 @@ int extraer_camino(const char *camino, char *inicial, char *final){
 		final='\0';
 		return 0; //fichero
 	}
+	r=0;
 	while (n<tam){
 		final[r] = camino[n];
 		n++;
@@ -61,10 +63,6 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 				return -2;
 			}
 		}
-		if((nentrada<numentradas) && (reservar==1)){
-			return -5; //Modo escritura y ya existe
-		}
-
 	}
 	if(nentrada==numentradas){
 		switch (reservar){
@@ -74,7 +72,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 		case '1':
 			strcpy(ent.nombre,inicial);
 			if(tipo==1){
-				if(strcmp(final,"/")){
+				if(!strcmp(final,"/")){
 					ent.inodo = reservar_inodo('d',modo);
 				}else{
 					ent.inodo = reservar_inodo('d',7);
@@ -94,6 +92,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 	if(strcmp(final,"/") == 0 || strcmp(final,"") == 0){
 		*p_inodo = ent.inodo;
 		*p_entrada = nentrada; //Comprovar nentrada
+		if((nentrada<numentradas) && (reservar=='1')){
+			return -5; //Modo escritura y ya existe
+		}
 		return 0;
 	}else{
 		*p_inodo_dir = ent.inodo; //Comprobar ent.inodo
@@ -107,12 +108,12 @@ int mi_creat(const char *camino, unsigned char modo){
 	unsigned int p_inodo= 0;
 	unsigned int p_entrada = 0;
 	int bEnt;
-	if(!sem){
-		obtenerSem(&sem);
-	}
-	waitSem(sem);
+	//if(!sem){
+	//	obtenerSem(&sem);
+	//}
+	//waitSem(sem);
 	bEnt= buscar_entrada(camino, &p_inodo_dir, &p_inodo,&p_entrada,'1',modo); //punteros?
-	signalSem(sem);
+	//signalSem(sem);
 	if(bEnt<0){
 		switch(bEnt){
 		case -1:
@@ -144,10 +145,10 @@ int mi_link(const char *camino1, const char *camino2){
 		obtenerSem(&sem);
 	}
 	waitSem(sem);
-	int bEnt = buscar_entrada(camino1,&p_inodo_dir,&p_inodo,&p_entrada,'0','0');
+	int rest = buscar_entrada(camino1,&p_inodo_dir,&p_inodo,&p_entrada,'0','0');
 
-	if(bEnt<0){
-		switch(bEnt){
+	if(rest<0){
+		switch(rest){
 		case -1:
 			printf("Tipo no adecuado");
 			break;
@@ -171,7 +172,7 @@ int mi_link(const char *camino1, const char *camino2){
 	p_inodo = 0;
 	p_entrada = 0;
 
-	bEnt = buscar_entrada(camino2,&p_inodo_dir,&p_inodo,&p_entrada,'1','0');
+	int bEnt = buscar_entrada(camino2,&p_inodo_dir,&p_inodo,&p_entrada,'1','0');
 
 	if(bEnt<0){
 		switch(bEnt){
@@ -274,10 +275,10 @@ int mi_dir(const char *camino, char *buffer){
 	struct tm *tm; //ver info: struct tm
 	char tmp[100];
 
-	int bEnt = buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,'0','0');
+	int bEnto = buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,'0','0');
 
-	if(bEnt<0){
-		switch(bEnt){
+	if(bEnto<0){
+		switch(bEnto){
 		case -1:
 			printf("Tipo no adecuado");
 			break;
@@ -301,6 +302,8 @@ int mi_dir(const char *camino, char *buffer){
 				strcat(buffer,Aent[i].nombre);
 				strcat(buffer," , ");
 				inodo = leer_inodo(Aent[i].inodo);
+				strcat(buffer,&inodo.tipo);
+				strcat(buffer," , ");
 				if (inodo.permisos & 4)
 					strcat(buffer,"r");
 				else

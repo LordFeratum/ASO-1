@@ -16,13 +16,17 @@
 
 
 int main(int argc, char **argv){
-	int sem;
-	iniciarSem(&sem);
+
+	if(argv!=3){
+		return -1;
+		printf("Número de argumentos incorrecto");
+	}
+	//int sem;
+	//iniciarSem(&sem);
 
 	unsigned int n_bloques = atoi(argv[2]);
 
 	unsigned char buf[blocksize];
-	struct superbloque sb;
 
 	memset(buf,0,blocksize);
 
@@ -57,106 +61,38 @@ int main(int argc, char **argv){
 	}else{
 		printf("Array de inodes escrito \n");
 	}
+	int inodoraiz = reservar_inodo('d',7);
+
+	printf("Sistema de ficheros creado correctamente \n");
 
 
+	if(mi_creat("/avion/", 7)<0){
+		printf("Error creando fichero \n");
+	}else{
+		printf("Fichero creado \n");
+	}
+	mi_chmod("/avion/", 4);
 
-	reservar_inodo('d',7);
-	reservar_inodo('d',7);
-	reservar_inodo('d',7);
+	//mi_creat("/otro/", 7);
+	//mi_creat("/nuevo/", 7);
 
-	int c = sizeof(sb);
-	printf("%d",c);
+	/*if(mi_creat("/Prueba/", 7)<0){
+		printf("Error creando fichero \n");
+	}else{
+		printf("Fichero creado \n");
+	}*/
 
-	//escribir_bit(34,1);
-	//escribir_bit(35,1);
-	//escribir_bit(37,1);
-	int d = leer_bit(33);
+	char buffer[100];
 
-	printf("el bit es %d \n",d);
+	memset(buffer,0,100);
 
-	printf("Bloque reservado: %d \n", e);
+	//mi_dir("/Prueba/", buffer);
 
-	leer_bit(e);
-
-	printf("el bit del bloque reservado es %d \n",d);
-
-	int f = reservar_bloque();
-
-	printf("Bloque reservado: %d \n", f);
-
-	f = reservar_bloque();
-
-	printf("Bloque reservado: %d \n", f);
-
-	f = reservar_bloque();
-
-	printf("Bloque reservado: %d \n", f);
-
-	f = reservar_bloque();
-
-	printf("Bloque reservado: %d \n", f);
-
-	f = reservar_bloque();
-
-	printf("Bloque reservado: %d \n", f);
-
-	liberar_bloque(1032);
-
-	struct inodo ino = leer_inodo(25);
-
-	printf("Punteros directos %d \n" ,ino.punterosDirectos[0]);
-	printf("Tipo: %c \n", ino.tipo);
-
-	ino.punterosDirectos[0]=6;
-	ino.tipo='f';
-	ino.permisos='7';
-
-	escribir_inodo(ino,25);
-	ino = leer_inodo(0);
-	struct inodo ino2 = leer_inodo(1);
-	struct inodo ino3 = leer_inodo(2);
-
-	printf("Tipo: %c \n", ino.tipo);
-	printf("Tipo: %c \n", ino2.tipo);
-	printf("Tipo: %c \n", ino3.tipo);
-
-	liberar_inodo(1);
-	ino2 = leer_inodo(1);
-	printf("Tipo: %c \n", ino2.tipo);
-
-
-	unsigned char elbufS[blocksize];
-	memset(elbufS,254,blocksize);
-
-	mi_write_f(1,elbufS,0,blocksize);
-
-
-	unsigned char elbufR[blocksize];
-
-	struct inodo superino = leer_inodo(2);
-
-	printf("Bloques usados: %d \n", superino.numBloquesOcupados);
-
-	bread(posSB,&sb);
-
-	memset(elbufR,0,blocksize);
-
-	mi_read_f(2,elbufR,0,blocksize);
-
-	printf("Hola");
-
-
-
-
-
-
-
-
-
-
-
+	//mi_write("/Prueba/", buf, 0, 1024);
+	//mi_creat("/prova/", 7);
 
 
 	bumount();
+
 	return 0;
 }
