@@ -63,7 +63,7 @@ int main(int argc, char **argv){
 
 	printf("Sistema de ficheros creado correctamente \n");
 
-
+	/*
 	if(mi_creat("/avion/", 7)<0){
 		printf("Error creando fichero \n");
 	}else{
@@ -74,11 +74,11 @@ int main(int argc, char **argv){
 	mi_creat("/otro/", 7);
 	//mi_creat("/nuevo/", 7);
 
-	/*if(mi_creat("/Prueba/", 7)<0){
+	if(mi_creat("/Prueba/", 7)<0){
 		printf("Error creando fichero \n");
 	}else{
 		printf("Fichero creado \n");
-	}*/
+	}
 
 	char buffer[100];
 
@@ -88,8 +88,8 @@ int main(int argc, char **argv){
 
 	//mi_write("/Prueba/", buf, 0, 1024);
 	//mi_creat("/prova/", 7);*/
-
-
+	
+	
 	bumount();
 
 	return 0;

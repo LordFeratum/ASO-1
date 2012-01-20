@@ -19,9 +19,9 @@
 
 int main(int argc, char **argv){
 
-	if(argv!=3){
+	if(argc!=3){
+		printf("Número de argumentos incorrecto \n");
 		return -1;
-		printf("Número de argumentos incorrecto");
 	}
 
 	bmount(argv[1]);
@@ -29,7 +29,7 @@ int main(int argc, char **argv){
 	if(mi_unlink(argv[2])<0){
 		printf("Error al borrar el fichero/directorio \n");
 	}else{
-		printf("Borrado correctamente");
+		printf("Borrado correctamente \n");
 	}
 
 	bumount();

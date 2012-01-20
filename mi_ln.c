@@ -18,9 +18,9 @@
 
 int main(int argc, char **argv){
 
-	if(argv!=4){
+	if(argc!=4){
+		printf("Número de argumentos incorrecto \n");
 		return -1;
-		printf("Número de argumentos incorrecto");
 	}
 
 	bmount(argv[1]);

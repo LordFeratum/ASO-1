@@ -16,13 +16,19 @@
 
 int main(int argc, char **argv){
 
-	char buffer[500];
+	if(argc!=3){
+		printf("Número de argumentos incorrecto \n");
+		return -1;
+	}
+
+	char buffer[2048];
+	memset(buffer,'\0',2048);
 
 	bmount(argv[1]);
 
 	mi_dir(argv[2], buffer);
 
-	printf("%s",buffer);
+	printf("%s \n",buffer);
 
 	bumount();
 

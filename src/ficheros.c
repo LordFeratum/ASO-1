@@ -145,7 +145,7 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
 			liberar_bloques_inodo(ninodo, i);
 		}
 
-		in.tamEnBytesLog=nbytes-1;
+		in.tamEnBytesLog=nbytes;
 		in.ctime=time(NULL);
 		in.mtime=time(NULL);
 		escribir_inodo(in,ninodo);

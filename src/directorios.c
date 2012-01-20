@@ -13,7 +13,7 @@ int extraer_camino(const char *camino, char *inicial, char *final){
 		return -1;
 	}
 	n=1;
-	while (camino[n]!='/'){
+	while ((camino[n]!='/') && camino[n]!='\0'){
 		inicial[n-1] = camino[n];
 		n++;
 	}
@@ -221,9 +221,10 @@ int mi_unlink(const char *camino){
 	unsigned int p_inodo_dir=0;
 	unsigned int p_inodo= 0;
 	unsigned int p_entrada = 0;
-	struct entrada buf_original;
+	struct entrada buf_original,buf_com;
 	int nentradas;
-	struct inodo inodo;
+	struct inodo inodo,inodoF;
+
 	if(!sem){
 		obtenerSem(&sem);
 	}
@@ -250,20 +251,25 @@ int mi_unlink(const char *camino){
 	}else{
 		inodo = leer_inodo(p_inodo_dir);
 		nentradas = inodo.tamEnBytesLog/sizeof(struct entrada);
-		mi_read_f(p_inodo_dir, &buf_original, nentradas*sizeof(struct entrada), sizeof(struct entrada));
-		if (nentradas-1==p_entrada){
-			mi_truncar_f(p_inodo_dir,sizeof(struct entrada));
-		}else{
-			mi_write_f(p_inodo_dir, &buf_original, p_entrada*sizeof(struct entrada), sizeof(struct entrada));
-			mi_truncar_f(p_inodo_dir,sizeof(struct entrada));
+		mi_read_f(p_inodo_dir, &buf_original, p_entrada*sizeof(struct entrada), sizeof(struct entrada));
+		inodoF = leer_inodo(buf_original.inodo);
+		if((inodoF.tipo=='d') && (inodoF.tamEnBytesLog>=64)){
+			printf("El directorio no está vacío \n");
+			return -5;
 		}
-		inodo = leer_inodo(buf_original.inodo);
-		inodo.nlinks--;
-		if (inodo.nlinks==0){
+		if (nentradas-1==p_entrada){
+			mi_truncar_f(p_inodo_dir,inodo.tamEnBytesLog-sizeof(struct entrada));
+		}else{
+			mi_read_f(p_inodo_dir, &buf_com, (nentradas-1)*sizeof(struct entrada), sizeof(struct entrada));
+			mi_write_f(p_inodo_dir, &buf_com, p_entrada*sizeof(struct entrada), sizeof(struct entrada));
+			mi_truncar_f(p_inodo_dir,inodo.tamEnBytesLog-sizeof(struct entrada));
+		}
+		inodoF.nlinks--;
+		if (inodoF.nlinks==0){
 			liberar_inodo(buf_original.inodo);
 		}else{
-			inodo.ctime=time(NULL);
-			escribir_inodo(inodo,buf_original.inodo);
+			inodoF.ctime=time(NULL);
+			escribir_inodo(inodoF,buf_original.inodo);
 		}
 	}
 	signalSem(sem);
@@ -278,6 +284,8 @@ int mi_dir(const char *camino, char *buffer){
 	struct inodo inodo;
 	struct tm *tm; //ver info: struct tm
 	char tmp[100];
+	struct entrada ent;
+	unsigned char relleno[32];
 
 	int bEnto = buscar_entrada(camino,&p_inodo_dir,&p_inodo,&p_entrada,'0','0');
 
@@ -297,17 +305,16 @@ int mi_dir(const char *camino, char *buffer){
 			break;
 		}
 	}else{
-		inodo = leer_inodo(p_inodo_dir);
+		inodo = leer_inodo(p_inodo);
 		if((inodo.tipo=='d') && (inodo.permisos & 4)){
 			nentradas = inodo.tamEnBytesLog/sizeof(struct entrada);
-			struct entrada Aent[nentradas];
-			bread(p_inodo_dir,&Aent);
 			for (i=0; i<nentradas;i++){
-				strcat(buffer,Aent[i].nombre);
-				strcat(buffer," , ");
-				inodo = leer_inodo(Aent[i].inodo);
-				strcat(buffer,&inodo.tipo);
-				strcat(buffer," , ");
+				mi_read_f(p_inodo, &ent, i*sizeof(struct entrada), sizeof(struct entrada));
+				inodo = leer_inodo(ent.inodo);
+
+				sprintf(relleno,"%c",inodo.tipo);
+				strcat(buffer,relleno);
+
 				if (inodo.permisos & 4)
 					strcat(buffer,"r");
 				else
@@ -320,14 +327,17 @@ int mi_dir(const char *camino, char *buffer){
 					strcat(buffer,"x");
 				else
 					strcat(buffer,"-");
-				strcat(buffer," , ");
-				//Para incorporar la información acerca del tiempo:
 
+				sprintf(relleno,"  %d  %d  %d  ",ent.inodo,inodo.nlinks,inodo.tamEnBytesLog);
+				strcat(buffer,relleno);
+
+				//Para incorporar la información acerca del tiempo:
 				tm = localtime(&inodo.mtime); // ver info: localtime()
-				sprintf(tmp,"%d-%02d-%02d %02d:%02d:%02d\t",tm->tm_year+1900,
+				sprintf(tmp,"%d-%02d-%02d %02d:%02d:%02d  ",tm->tm_year+1900,
 				tm->tm_mon+1,tm->tm_mday,tm->tm_hour,tm->tm_min,tm->tm_sec);
 				strcat(buffer,tmp);
-				strcat(buffer," | ");
+				strcat(buffer,ent.nombre);
+				strcat(buffer,"\n");
 			}
 		}
 	}
@@ -372,18 +382,19 @@ int mi_stat(const char *camino, struct STAT *p_stat){
 	if(bEnt<0){
 		switch(bEnt){
 		case -1:
-			printf("Tipo no adecuado");
+			printf("Tipo no adecuado \n");
 			break;
 		case -2:
-			printf("No se puede leer el inodo");
+			printf("No se puede leer el inodo \n");
 			break;
 		case -3:
-			printf("El directorio donde apunta p_inodo_dir no tiene permisos de escritura");
+			printf("El directorio donde apunta p_inodo_dir no tiene permisos de escritura \n");
 			break;
 		case -4:
-			printf("No existe");
+			printf("No existe \n");
 			break;
 		}
+		return -1;
 	}else{
 		mi_stat_f(p_inodo, p_stat);
 	}
