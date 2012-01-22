@@ -22,7 +22,7 @@ int main(int argc, char **argv){
 		return -1;
 	}
 
-	unsigned int n_bloques = atoi(argv[2]);
+	unsigned int n_bloques = atoi(argv[2]);	//Número de bloques del FS
 
 	unsigned char buf[blocksize];
 
@@ -61,34 +61,7 @@ int main(int argc, char **argv){
 	}
 	int inodoraiz = reservar_inodo('d',7);
 
-	printf("Sistema de ficheros creado correctamente \n");
-
-	/*
-	if(mi_creat("/avion/", 7)<0){
-		printf("Error creando fichero \n");
-	}else{
-		printf("Fichero creado \n");
-	}
-	mi_chmod("/avion/", 4);
-
-	mi_creat("/otro/", 7);
-	//mi_creat("/nuevo/", 7);
-
-	if(mi_creat("/Prueba/", 7)<0){
-		printf("Error creando fichero \n");
-	}else{
-		printf("Fichero creado \n");
-	}
-
-	char buffer[100];
-
-	memset(buffer,0,100);
-
-	//mi_dir("/Prueba/", buffer);
-
-	//mi_write("/Prueba/", buf, 0, 1024);
-	//mi_creat("/prova/", 7);*/
-	
+	printf("Sistema de ficheros creado correctamente \n");	
 	
 	bumount();
 

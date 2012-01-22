@@ -24,13 +24,13 @@ int main(int argc, char **argv){
 	char buffer[2048];
 	memset(buffer,'\0',2048);
 
-	bmount(argv[1]);
+	bmount(argv[1]);	//Monta disco
 
 	mi_dir(argv[2], buffer);
 
 	printf("%s \n",buffer);
 
-	bumount();
+	bumount();	//Desmonta disco
 
 	return 0;
 }

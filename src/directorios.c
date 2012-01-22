@@ -7,23 +7,24 @@
 #include "directorios.h"
 int sem = 0;
 
+//Separa un camino en inicial y final
 int extraer_camino(const char *camino, char *inicial, char *final){
 	int tam,n,r;
-	if (camino[0]!='/'){
+	if (camino[0]!='/'){	//Si no es empieza por / no es correcto
 		return -1;
 	}
 	n=1;
-	while ((camino[n]!='/') && camino[n]!='\0'){
+	while ((camino[n]!='/') && camino[n]!='\0'){	//Copia a inicial
 		inicial[n-1] = camino[n];
 		n++;
 	}
 	tam = strlen(camino);
-	if (tam == n){
+	if (tam == n){	//Si hemos llegado al final es un fichero
 		final='\0';
 		return 0; //fichero
 	}
 	r=0;
-	while (n<tam){
+	while (n<tam){	//Copia a final el resto de camino
 		final[r] = camino[n];
 		n++;
 		r++;
@@ -31,12 +32,13 @@ int extraer_camino(const char *camino, char *inicial, char *final){
 	return 1; //directorio
 }
 
+//Busca recursivamente una entrada
 int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char modo){
 	char inicial[60],final[60];
 	struct inodo in;
 	struct entrada ent;
 	int numentradas,nentrada,tipo;
-	if (strcmp(camino_parcial,"/")==0){
+	if (strcmp(camino_parcial,"/")==0){	//Raiz
 		*p_inodo=0;
 		*p_entrada=0;
 		return 0;
@@ -45,19 +47,19 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 	memset(inicial,'\0',60);
 	memset(final,'\0',60);
 
-	tipo = extraer_camino(camino_parcial,inicial,final);
+	tipo = extraer_camino(camino_parcial,inicial,final);	//Separa inicial y final
 	if (tipo==-1){
 		return -1;
 	}
-	in = leer_inodo(*p_inodo_dir);
+	in = leer_inodo(*p_inodo_dir);	//Lee el directorio que lo contiene para leer su entrada
 	memset(ent.nombre,'\0',60);
 	numentradas = in.tamEnBytesLog/sizeof(struct entrada);
 	nentrada = 0;
 	if(numentradas>0){
-		if(mi_read_f(*p_inodo_dir,&ent,0,sizeof(struct entrada)) == -1){
+		if(mi_read_f(*p_inodo_dir,&ent,0,sizeof(struct entrada)) == -1){	//Lee la primera entrada
 			return -2; //No permisos de lectura
 		}
-		while ((nentrada<numentradas) && (strcmp(inicial,ent.nombre))){
+		while ((nentrada<numentradas) && (strcmp(inicial,ent.nombre))){	//Recorre las entradas hasta que acabe o encuentre el nombre
 			nentrada++;
 			if(mi_read_f(*p_inodo_dir,&ent,nentrada*sizeof(struct entrada),sizeof(struct entrada))==-1){
 				return -2;
@@ -66,18 +68,18 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 	}
 	if(nentrada==numentradas){
 		switch (reservar){
-		case '0':
+		case '0':	//Consulta
 			return -4; //Modo consulta, no existeix
 			break;
-		case '1':
-			strcpy(ent.nombre,inicial);
-			if(tipo==1){
+		case '1':	//Escritura
+			strcpy(ent.nombre,inicial);	//Copia el nombre en la entrada y reserva un inodo
+			if(tipo==1){	//Directorio
 				if(!strcmp(final,"/")){
 					ent.inodo = reservar_inodo('d',modo);
 				}else{
 					ent.inodo = reservar_inodo('d',7);
 				}
-			}else{
+			}else{	//Fichero
 				ent.inodo = reservar_inodo('f',modo);
 			}
 			if(mi_write_f(*p_inodo_dir,&ent,nentrada*sizeof(struct entrada),sizeof(struct entrada))==-1){
@@ -89,30 +91,31 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 			break;
 		}
 	}
-	if(strcmp(final,"/") == 0 || strcmp(final,"") == 0){
+	if(strcmp(final,"/") == 0 || strcmp(final,"") == 0){	//Si ya es la final devuelve
 		*p_inodo = ent.inodo;
-		*p_entrada = nentrada; //Comprovar nentrada
+		*p_entrada = nentrada;
 		if((nentrada<numentradas) && (reservar=='1')){
 			return -5; //Modo escritura y ya existe
 		}
 		return 0;
-	}else{
-		*p_inodo_dir = ent.inodo; //Comprobar ent.inodo
+	}else{	//Si no es final extrae de nuevo el camino
+		*p_inodo_dir = ent.inodo;
 		buscar_entrada(final,p_inodo_dir,p_inodo,p_entrada,reservar,modo);
 	}
 	return 0;
 }
 
+//Crea un fichero/directorio
 int mi_creat(const char *camino, unsigned char modo){
 	unsigned int p_inodo_dir=0;
 	unsigned int p_inodo= 0;
 	unsigned int p_entrada = 0;
 	int bEnt;
-	if(!sem){
+	if(!sem){	//Obtiene semáforo
 		obtenerSem(&sem);
 	}
 	waitSem(sem);
-	bEnt= buscar_entrada(camino, &p_inodo_dir, &p_inodo,&p_entrada,'1',modo); //punteros?
+	bEnt= buscar_entrada(camino, &p_inodo_dir, &p_inodo,&p_entrada,'1',modo); //Escribe
 	signalSem(sem);
 	if(bEnt<0){
 		switch(bEnt){
@@ -131,9 +134,10 @@ int mi_creat(const char *camino, unsigned char modo){
 		}
 		return -1;
 	}
-	return 0; //No hemos hecho nada con el nombre
+	return 0;
 }
 
+//Enlaza una entrada con otra
 int mi_link(const char *camino1, const char *camino2){
 	unsigned int p_inodo_dir = 0;
 	unsigned int p_inodo = 0;
@@ -141,11 +145,11 @@ int mi_link(const char *camino1, const char *camino2){
 	struct entrada entrada;
 	struct inodo inodo;
 
-	if(!sem){
+	if(!sem){	//Obtener semáforo
 		obtenerSem(&sem);
 	}
 	waitSem(sem);
-	int rest = buscar_entrada(camino1,&p_inodo_dir,&p_inodo,&p_entrada,'0','0');
+	int rest = buscar_entrada(camino1,&p_inodo_dir,&p_inodo,&p_entrada,'0','0'); //Obtiene entrada origen
 	signalSem(sem);
 
 	if(rest<0){
@@ -176,7 +180,7 @@ int mi_link(const char *camino1, const char *camino2){
 		obtenerSem(&sem);
 	}
 	waitSem(sem);
-	int bEnt = buscar_entrada(camino2,&p_inodo_dir,&p_inodo,&p_entrada,'1','0');
+	int bEnt = buscar_entrada(camino2,&p_inodo_dir,&p_inodo,&p_entrada,'1','0');	//Crea entrada destino
 
 	if(bEnt<0){
 		switch(bEnt){
@@ -196,27 +200,27 @@ int mi_link(const char *camino1, const char *camino2){
 		signalSem(sem);
 		return -1;
 	}else{
-		if(mi_read_f(p_inodo_dir,&entrada,p_entrada*sizeof(struct entrada),sizeof(struct entrada))==-1){
+		if(mi_read_f(p_inodo_dir,&entrada,p_entrada*sizeof(struct entrada),sizeof(struct entrada))==-1){	//Si no se puede leer
 			signalSem(sem);
 			return -2;
-		}
+		}	//Libera inodo comodín y enlaza al otro
 		liberar_inodo(entrada.inodo);
 		entrada.inodo = ninodo;
-		if(mi_write_f(p_inodo_dir,&entrada,p_entrada*sizeof(struct entrada),sizeof(struct entrada))==-1){
+		if(mi_write_f(p_inodo_dir,&entrada,p_entrada*sizeof(struct entrada),sizeof(struct entrada))==-1){	//Escribe entrada
 			signalSem(sem);
 			return -3; //El directorio donde apunta p_inodo_dir no tiene permisos de escritura
 		}else{
 			inodo = leer_inodo(ninodo);
 			inodo.nlinks++;
 			inodo.ctime = time(NULL);
-			escribir_inodo(inodo,ninodo);
+			escribir_inodo(inodo,ninodo);	//Escribe inodo modificado
 		}
 	}
 	signalSem(sem);
 	return 0;
 }
 
-
+//Desenlaza una entrada
 int mi_unlink(const char *camino){
 	unsigned int p_inodo_dir=0;
 	unsigned int p_inodo= 0;
@@ -257,17 +261,17 @@ int mi_unlink(const char *camino){
 			printf("El directorio no está vacío \n");
 			return -5;
 		}
-		if (nentradas-1==p_entrada){
+		if (nentradas-1==p_entrada){	//Si es la última entrada la borra
 			mi_truncar_f(p_inodo_dir,inodo.tamEnBytesLog-sizeof(struct entrada));
-		}else{
+		}else{	//Mueve la última entrada a su posición y borra la última
 			mi_read_f(p_inodo_dir, &buf_com, (nentradas-1)*sizeof(struct entrada), sizeof(struct entrada));
 			mi_write_f(p_inodo_dir, &buf_com, p_entrada*sizeof(struct entrada), sizeof(struct entrada));
 			mi_truncar_f(p_inodo_dir,inodo.tamEnBytesLog-sizeof(struct entrada));
 		}
 		inodoF.nlinks--;
-		if (inodoF.nlinks==0){
+		if (inodoF.nlinks==0){	//Si no tiene más links borra el inodo
 			liberar_inodo(buf_original.inodo);
-		}else{
+		}else{	//Actualiza inodo
 			inodoF.ctime=time(NULL);
 			escribir_inodo(inodoF,buf_original.inodo);
 		}
@@ -276,6 +280,7 @@ int mi_unlink(const char *camino){
 	return 0;
 }
 
+//Lista un directorio
 int mi_dir(const char *camino, char *buffer){
 	unsigned int p_inodo_dir=0;
 	unsigned int p_inodo= 0;
@@ -306,9 +311,9 @@ int mi_dir(const char *camino, char *buffer){
 		}
 	}else{
 		inodo = leer_inodo(p_inodo);
-		if((inodo.tipo=='d') && (inodo.permisos & 4)){
+		if((inodo.tipo=='d') && (inodo.permisos & 4)){	//Si es un directorio y tiene permisos de lectura
 			nentradas = inodo.tamEnBytesLog/sizeof(struct entrada);
-			for (i=0; i<nentradas;i++){
+			for (i=0; i<nentradas;i++){	//Itera todos los registros y los junta en un string
 				mi_read_f(p_inodo, &ent, i*sizeof(struct entrada), sizeof(struct entrada));
 				inodo = leer_inodo(ent.inodo);
 
@@ -332,7 +337,7 @@ int mi_dir(const char *camino, char *buffer){
 				strcat(buffer,relleno);
 
 				//Para incorporar la información acerca del tiempo:
-				tm = localtime(&inodo.mtime); // ver info: localtime()
+				tm = localtime(&inodo.mtime);
 				sprintf(tmp,"%d-%02d-%02d %02d:%02d:%02d  ",tm->tm_year+1900,
 				tm->tm_mon+1,tm->tm_mday,tm->tm_hour,tm->tm_min,tm->tm_sec);
 				strcat(buffer,tmp);
@@ -344,6 +349,7 @@ int mi_dir(const char *camino, char *buffer){
 	return nentradas;
 }
 
+//Cambia permisos de un fichero/directorio
 int mi_chmod(const char *camino, unsigned char modo){
 	unsigned int p_inodo_dir=0;
 	unsigned int p_inodo= 0;
@@ -367,11 +373,12 @@ int mi_chmod(const char *camino, unsigned char modo){
 			break;
 		}
 	}else{
-		mi_chmod_f(p_inodo,modo);
+		mi_chmod_f(p_inodo,modo);	//Cambia permisos
 	}
 	return 0;
 }
 
+//Extrae datos de una entrada
 int mi_stat(const char *camino, struct STAT *p_stat){
 	unsigned int p_inodo_dir=0;
 	unsigned int p_inodo= 0;
@@ -401,6 +408,7 @@ int mi_stat(const char *camino, struct STAT *p_stat){
 	return 0;
 }
 
+//Lee el contenido de un fichero/directorio
 int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes){
 	unsigned int p_inodo_dir=0;
 	unsigned int p_inodo= 0;
@@ -428,6 +436,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
 	return 0;
 }
 
+//Escribe en un fichero/directorio
 int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes){
 	unsigned int p_inodo_dir=0;
 	unsigned int p_inodo= 0;

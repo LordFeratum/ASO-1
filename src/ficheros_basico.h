@@ -46,7 +46,7 @@ struct inodo{
 	unsigned int numBloquesOcupados; //Cantidad de bloques ocupados en la zona de datos
 	unsigned int punterosDirectos[12]; //12 punteros a bloques directos
 	unsigned int punterosIndirectos[3]; //3 punteros a bloques indirectos:1 puntero indirecto simple, 1 puntero indirecto doble, 1 puntero indirecto triple
-	char padding[T_INODO-88];
+	char padding[24];
 };
 
 int tamMB (unsigned int nbloques);

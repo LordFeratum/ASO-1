@@ -23,10 +23,10 @@ int main(int argc, char **argv){
 		return -1;
 	}
 
-	struct tm *tm; //ver info: struct tm
+	struct tm *tm;
 	struct STAT p_stat;
 
-	bmount(argv[1]);
+	bmount(argv[1]);	//Monta disco
 
 	if(mi_stat(argv[2], &p_stat)<0){
 		printf("Error al obtener los datos del fichero/directorio \n");
@@ -51,7 +51,7 @@ int main(int argc, char **argv){
 	}
 
 
-	bumount();
+	bumount();	//Desmonta disco
 
 	return 0;
 }

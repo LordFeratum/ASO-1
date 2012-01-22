@@ -33,7 +33,7 @@ int main(int argc, char **argv){
 		return -2;
 	}
 
-	bmount(argv[1]);
+	bmount(argv[1]);	//Monta disco
 
 	if(mi_write(argv[2], argv[3], 0, tam3)<0){
 		printf("Error al escribir en el fichero \n");
@@ -41,7 +41,7 @@ int main(int argc, char **argv){
 		printf("Fichero escrito correctamente \n");
 	}
 
-	bumount();
+	bumount();	//Desmonta disco
 
 	return 0;
 }

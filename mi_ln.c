@@ -23,7 +23,7 @@ int main(int argc, char **argv){
 		return -1;
 	}
 
-	bmount(argv[1]);
+	bmount(argv[1]);	//Monta disco
 
 	if(mi_link(argv[2], argv[3])<0){
 		printf("Error al enlazar el fichero o directorio \n");
@@ -31,7 +31,7 @@ int main(int argc, char **argv){
 		printf("Enlace realizado correctamente \n");
 	}
 
-	bumount();
+	bumount();	//Desnonta disco
 
 	return 0;
 }

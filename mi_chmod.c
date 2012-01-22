@@ -21,7 +21,7 @@ int main(int argc, char **argv){
 		return -1;
 	}
 
-	bmount(argv[1]);
+	bmount(argv[1]);	//Monta Disco
 
 	unsigned int modo = atoi(argv[2]);
 
@@ -31,7 +31,7 @@ int main(int argc, char **argv){
 		printf("Permisos cambiados \n");
 	}
 
-	bumount();
+	bumount();	//Desmonta disco
 
 	return 0;
 }

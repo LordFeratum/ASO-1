@@ -24,7 +24,7 @@ int main(int argc, char **argv){
 		return -1;
 	}
 
-	bmount(argv[1]);
+	bmount(argv[1]);	//Monta disco
 
 	if(mi_unlink(argv[2])<0){
 		printf("Error al borrar el fichero/directorio \n");
@@ -32,7 +32,7 @@ int main(int argc, char **argv){
 		printf("Borrado correctamente \n");
 	}
 
-	bumount();
+	bumount();	//Desmonta disco
 
 	return 0;
 }

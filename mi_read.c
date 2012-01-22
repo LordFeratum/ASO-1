@@ -36,7 +36,7 @@ int main(int argc, char **argv){
 		return -2;
 	}
 
-	bmount(argv[1]);
+	bmount(argv[1]);	//Monta disco
 
 	if(mi_read(argv[2], buf, 0, tam3)<0){
 		printf("Error al leer del fichero \n");
@@ -44,7 +44,7 @@ int main(int argc, char **argv){
 		printf("%s \n",buf);
 	}
 
-	bumount();
+	bumount();	//Desmonta disco
 
 	return 0;
 }
