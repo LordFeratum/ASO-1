@@ -257,7 +257,7 @@ int mi_unlink(const char *camino){
 		nentradas = inodo.tamEnBytesLog/sizeof(struct entrada);
 		mi_read_f(p_inodo_dir, &buf_original, p_entrada*sizeof(struct entrada), sizeof(struct entrada));
 		inodoF = leer_inodo(buf_original.inodo);
-		if((inodoF.tipo=='d') && (inodoF.tamEnBytesLog>=64)){
+		if((inodoF.tipo=='d') && (inodoF.tamEnBytesLog>=64) && (inodoF.nlinks==1)){
 			printf("El directorio no está vacío \n");
 			return -5;
 		}

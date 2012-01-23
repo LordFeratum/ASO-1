@@ -131,7 +131,7 @@ void verificar(char *direc){
 			printf("Menor posición. Nposicion:%d Nescritura:%d Hora:%d \n",MenPos.nreg,MenPos.nesc,MenPos.hora);
 			printf("Mayor posición. Nposicion:%d Nescritura:%d Hora:%d \n\n",MayPos.nreg,MayPos.nesc,MayPos.hora);
 		}
-		printf("%s",direc);
+			printf("%s",direc);
 	}
 
 
@@ -194,3 +194,4 @@ int main(int argc, char **argv){
 
 	return 0;
 }
+

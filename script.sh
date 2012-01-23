@@ -3,7 +3,7 @@
 echo "Script de primitivas"
 
 Disco="Disco.imagen"
-Dir="/simul_2012121224348/"
+Dir="/simul_20121231278/"
 
 #listamos la raiz
 echo

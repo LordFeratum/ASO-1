@@ -53,8 +53,8 @@ int mi_write_f(unsigned int inodo, const void *buf_original, unsigned int offset
 		if (pbloc<dbloc){
 			if (traducir_bloque_inodo(inodo,dbloc,&bfisico,'1')){ //Si existe escribe desde el principio del bloque
 				bread(bfisico,buf_bloque);
-				fbloc = (offset + nbytes - 1)/blocksize;
-				memcpy(buf_bloque,buf_original+ (blocksize - rbloc) + (dbloc - pbloc - 1) * blocksize, fbloc+1);
+				fbloc = (offset + nbytes - 1)%blocksize;
+				memcpy(buf_bloque,buf_original+ (blocksize - rbloc) + (dbloc - pbloc - 1) * blocksize, fbloc);
 				bwrite (bfisico,buf_bloque);
 			}
 		}
@@ -111,7 +111,7 @@ int mi_read_f(unsigned int inodo, void *buf_original, unsigned int offset, unsig
 					if (traducir_bloque_inodo(inodo,dbloc,&bfisico,'0')){ //Si existe escribe desde el principio del bloque
 						bread(bfisico,buf_bloque);
 						fbloc = (offset + nbytes - 1)%blocksize;
-						memcpy(buf_original+ (blocksize - rbloc) + (dbloc - pbloc - 1) * blocksize,&buf_bloque, fbloc+1);
+						memcpy(buf_original+ (blocksize - rbloc) + (dbloc - pbloc - 1) * blocksize,&buf_bloque, fbloc);
 					}
 		}
 		in = leer_inodo(inodo);

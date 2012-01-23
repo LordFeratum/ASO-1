@@ -13,6 +13,7 @@ gcc -o mi_stat mi_stat.c bloques.c directorios.c ficheros_basico.c ficheros.c se
 gcc -o mi_touch mi_touch.c bloques.c directorios.c ficheros_basico.c ficheros.c semaforo.c
 gcc -o mi_write mi_write.c bloques.c directorios.c ficheros_basico.c ficheros.c semaforo.c
 gcc -o mi_read mi_read.c bloques.c directorios.c ficheros_basico.c ficheros.c semaforo.c
+gcc -o mi_simulacion mi_simulacion.c bloques.c directorios.c ficheros_basico.c ficheros.c semaforo.c
 
 rm mi*.c
 mv mi* ../

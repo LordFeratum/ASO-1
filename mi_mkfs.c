@@ -28,10 +28,10 @@ int main(int argc, char **argv){
 
 	memset(buf,0,blocksize);
 
-	bmount(argv[1]);
+	bmount(argv[1]);	//Monta Disco
 	int i;
 
-	for (i=0; i<n_bloques-1; i++){
+	for (i=0; i<n_bloques-1; i++){	//Llena bloques con 0s
 		bwrite(i,buf);
 	}
 	memset(buf,1,blocksize);
@@ -40,21 +40,21 @@ int main(int argc, char **argv){
 
 
 	int block = n_bloques/4;//Para el cáculo de inodos
-	if(initSB(n_bloques, block)==-1){
+	if(initSB(n_bloques, block)==-1){	//Inicializa SB
 		printf("Error al escribir superbloque");
 	}else{
 		printf("Superbloque escrito \n");
 	}
 
-	if(initMB(n_bloques)==-1){
+	if(initMB(n_bloques)==-1){	//Inicializa MB
 		printf("Error al escribir mapa de bits");
 	}else{
 		printf("Mapa de bits escrito \n");
 	}
 
-	int n = tamAI(block);//En teoría no sirve para nada
+	int n = tamAI(block);
 
-	if (initAI(n)==-1){
+	if (initAI(n)==-1){	//Inicializa AI
 		printf("Error al escribir el array de inodes");
 	}else{
 		printf("Array de inodes escrito \n");
@@ -63,7 +63,7 @@ int main(int argc, char **argv){
 
 	printf("Sistema de ficheros creado correctamente \n");	
 	
-	bumount();
+	bumount();	//Desmonta disco
 
 	return 0;
 }

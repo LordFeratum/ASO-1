@@ -23,7 +23,7 @@ int main(int argc, char **argv){
 
 	int tam;
 
-	bmount(argv[1]);
+	bmount(argv[1]);	//Monta disco
 
 	unsigned int modo = atoi(argv[3]);
 
@@ -39,7 +39,7 @@ int main(int argc, char **argv){
 		printf("Debe introducir un directorio válido \n");
 	}
 
-	bumount();
+	bumount();	//Desmonta disco
 
 	return 0;
 }
