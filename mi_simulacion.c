@@ -143,7 +143,6 @@ int main(int argc, char **argv){
 
 	char direc[60];
 	char informe[100];
-	//int prueba[blocksize*1024];
 	int n;
 	time_t hora;
 	struct tm *tm;
@@ -163,7 +162,6 @@ int main(int argc, char **argv){
 	memset(direc,'\0',60);
 	sprintf(direc,"/simul_%d%d%d%d%d%d/",tm->tm_year+1900,tm->tm_mon+1,tm->tm_mday,tm->tm_hour, tm->tm_min, tm->tm_sec);
 	mi_creat(direc, 7);
-	//memset(prueba,1234567,blocksize*1024);
 
 	//Prepara enterrador e inicializa nproces
 	signal(SIGCHLD, enterrador);
@@ -186,9 +184,10 @@ int main(int argc, char **argv){
 
 	sprintf(informe,"%sinforme.txt",direc);
 	mi_creat(informe,7);
-	//mi_write(informe, prueba, 0, 1024*blocksize);
 	mi_write(informe,"Prueba Contenido",0,16);
 
+
+	
 	//Desmonta el sistema de ficheros
 	bumount();
 

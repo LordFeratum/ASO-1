@@ -19,18 +19,20 @@
 
 int main(int argc, char **argv){
 
-	unsigned int tam2,tam3;
+	unsigned int tam2,tam3,tam4;
 	unsigned char buf[blocksize];
 
 	memset(buf,'\0',blocksize);
 
-	if(argc!=4){
+	if(argc!=5){
 		printf("Número de argumentos incorrecto \n");
 		return -1;
 	}
 
 	tam2 = strlen(argv[2]);
-	tam3 = atoi(argv[3]);
+	tam3 = atoi(argv[4]);
+	tam4 = atoi(argv[3]);
+	
 	if(argv[2][tam2-1]=='/'){
 		printf("No es un fichero \n");
 		return -2;
@@ -38,7 +40,7 @@ int main(int argc, char **argv){
 
 	bmount(argv[1]);	//Monta disco
 
-	if(mi_read(argv[2], buf, 0, tam3)<0){
+	if(mi_read(argv[2], buf, tam4, tam3)<0){
 		printf("Error al leer del fichero \n");
 	}else{
 		printf("%s \n",buf);
